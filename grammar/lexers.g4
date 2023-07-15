@@ -30,7 +30,9 @@ EQUAL: '=';
 FAT_ARROW: '=>';
 ASSIGN: '<-';
 
-// ! FALTA AGREGAR LAS REGLAS DE STRINS VER DOC
+// CADENAS
+STR_VAR : '"' (ESC_SEQ | ~['"\0])* '"'; // ? como agrego la validacion? dentro de brackets deberia de ser python?
+fragment ESC_SEQ : '\\' ('b' | 't' | 'n' | 'f');
 
 // COMENTARIOS
 COMMENT_LINE: '--' ~[\r\n]* -> skip;
@@ -50,6 +52,7 @@ THEN: [tT][hH][eE][nN];
 WHILE: [wW][hH][iI][lL][eE];
 NEW: [nN][eE][wW];
 NOT: [nN][oO][tT];
+LET: [lL][eE][tT];
 
 // BOOLS
 TRUE: 'true';
