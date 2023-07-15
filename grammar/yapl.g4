@@ -1,4 +1,4 @@
-grammar yalp;
+grammar yapl;
 import lexers;
 
 program: (classs SEMICOLON)+;
@@ -12,7 +12,7 @@ var_typescript: <assoc=right> ID_VAR COLON TYPE_IDENTIFIER (ASSIGN expr)? # attr
 
 feature:
 	ID_VAR LPAREN (formal ( COMMA formal)*)* RPAREN COLON TYPE_IDENTIFIER LBRACE expr RBRACE # methodDef
-	| var_typescript # attributesDeclaration;
+	| var_typescript # attr;
 
 formal: ID_VAR COLON TYPE_IDENTIFIER;
 

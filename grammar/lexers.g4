@@ -31,7 +31,7 @@ FAT_ARROW: '=>';
 ASSIGN: '<-';
 
 // CADENAS
-STR_VAR : '"' (ESC_SEQ | ~['"\0])* '"'; // ? como agrego la validacion? dentro de brackets deberia de ser python?
+STR_VAR : '"' (ESC_SEQ | ~['"])* '"'; // ? como agrego la validacion? dentro de brackets deberia de ser python?
 fragment ESC_SEQ : '\\' ('b' | 't' | 'n' | 'f');
 
 // COMENTARIOS
@@ -59,4 +59,4 @@ TRUE: 'true';
 FALSE: 'false';
 
 // WHITESPACE
-WS: [ \n\f\r\t\v]+ -> skip;
+WS: [ \n\f\r\t]+ -> skip;
