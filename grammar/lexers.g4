@@ -1,11 +1,30 @@
 lexer grammar lexers;
 
-// ENTEROS
-INT_VAR: [0-9]+;
-// IDENTIFICADORES
-ID_VAR: [a-z][_a-z0-9A-Z]*;
-TYPE_IDENTIFIER: [A-Z][_a-z0-9A-Z]*;
-// ? Existen dos identificadores especiales, self y SELF_TYPE, que no son tratados como palabras reservadas. ¿Como agrego estos identificadores?
+// PALABRAS RESERVADAS son case insenstive, es valido 'class' o 'CLASS'
+CLASS: [cC][lL][aA][sS][sS];
+ELSE: [eE][lL][sS][eE];
+FI: [fF][iI];
+IF: [iI][fF];
+IN: [iI][nN];
+INHERITS: [iI][nN][hH][eE][rR][iI][tT][sS];
+ISVOID: [iI][sS][vV][oO][iI][dD];
+LOOP: [lL][oO][oO][pP];
+POOL: [pP][oO][oO][lL];
+THEN: [tT][hH][eE][nN];
+WHILE: [wW][hH][iI][lL][eE];
+NEW: [nN][eE][wW];
+NOT: [nN][oO][tT];
+LET: [lL][eE][tT];
+
+// BOOLS
+TRUE: 'true';
+FALSE: 'false';
+
+// WHITESPACE
+WS: [ \n\f\r\t]+ -> skip;
+
+NEWLINE: '\r'? '\n' -> skip;
+
 LPAREN: '(';
 RPAREN: ')';
 LBRACE: '{';
@@ -38,25 +57,9 @@ fragment ESC_SEQ : '\\' ('b' | 't' | 'n' | 'f');
 COMMENT_LINE: '--' ~[\r\n]* -> skip;
 COMMENT_BLOCK: '(*' .*? '*)' -> skip;
 
-// PALABRAS RESERVADAS son case insenstive, es valido 'class' o 'CLASS'
-CLASS: [cC][lL][aA][sS][sS];
-ELSE: [eE][lL][sS][eE];
-FI: [fF][iI];
-IF: [iI][fF];
-IN: [iI][nN];
-INHERITS: [iI][nN][hH][eE][rR][iI][tT][sS];
-ISVOID: [iI][sS][vV][oO][iI][dD];
-LOOP: [lL][oO][oO][pP];
-POOL: [pP][oO][oO][lL];
-THEN: [tT][hH][eE][nN];
-WHILE: [wW][hH][iI][lL][eE];
-NEW: [nN][eE][wW];
-NOT: [nN][oO][tT];
-LET: [lL][eE][tT];
-
-// BOOLS
-TRUE: 'true';
-FALSE: 'false';
-
-// WHITESPACE
-WS: [ \n\f\r\t]+ -> skip;
+// ENTEROS
+INT_VAR: [0-9]+;
+// IDENTIFICADORES
+ID_VAR: [a-z]([a-zA-Z0-9]|'_')*;
+TYPE_IDENTIFIER: [A-Z]([a-zA-Z0-9]|'_')*;
+// ? Existen dos identificadores especiales, self y SELF_TYPE, que no son tratados como palabras reservadas. ¿Como agrego estos identificadores?
