@@ -1,5 +1,39 @@
 lexer grammar lexers;
 
+@members {
+    self.inComment = False
+    self.inString = False
+    self.initial = True
+    self.nesting = 0
+}
+
+LINECOMMENT: '--' (~ '\n')* '\n' -> skip;
+LINECOMMENTEOF: '--' (~ '\n')* EOF -> skip;
+
+BEGINCOMMENT: '(*' {self.initial}? {
+    self.inComment = True
+    self.initial = False
+    self.nesting += 1
+    print('Comment starting')
+} -> skip ;
+BEGINCOMMENTNEST: '(*' {self.inComment}? { 
+    self.nesting += 1
+} -> skip;
+ENDCOMMENT:  '*)' {self.inComment}?
+      {
+        self.nesting -= 1
+        if self.nesting == 0:
+          self.inComment = False
+          self.initial = True
+          print("Comment ending")
+      } -> skip;
+IGNOREINCOMMENT: ~[*(\n]+  {self.inComment}? -> skip;
+IGNOREINCOMMENTLPAREN : '(' { self.inComment}? -> skip;
+IGNOREINCOMMENTSTAR : '*' { self.inComment}? -> skip;
+IGNOREINCOMMENTNEWLINE: '\n' {self.inComment}? -> skip;
+
+BADENDCOMMENT:  '*)' {self.initial}?  { print('Bad comment end') };
+
 // PALABRAS RESERVADAS son case insenstive, es valido 'class' o 'CLASS'
 CLASS: [cC][lL][aA][sS][sS];
 ELSE: [eE][lL][sS][eE];
