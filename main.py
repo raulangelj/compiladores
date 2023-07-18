@@ -37,7 +37,7 @@ def main():
     print(Trees.toStringTree(tree, None, parser))
     for i in token_stream.tokens:
         if i.type == yaplLexer.ERROR:
-            print(colored("ERROR: Bad token at line:", i.line, ":", i.column, 'red'))
+            print(colored(f"ERROR: Bad token at line: {i.line} : {i.column}", 'red'))
         else:
             print(i)
     

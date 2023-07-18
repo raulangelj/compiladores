@@ -2,12 +2,12 @@ from antlr4 import *
 from termcolor import colored
 
 class ErrorListener(object):
+  def __init__(self) -> None:
+    self.true = False
+
   def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-    print("Bad token at line:", line, ":", column)
-    try:
-      print(colored(f"Hint: {offendingSymbol.text}", 'red'))
-    except Exception:
-      print(colored(f"Hint: {msg}", 'red'))
+    print(colored(f"Bad token at line: {line} : {column}", 'red'))
+    print(colored(f"Hint: {msg}", 'red'))
     self.true = True
     # exit(1)
 

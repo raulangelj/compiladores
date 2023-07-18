@@ -7,7 +7,7 @@ program: (classs SEMICOLON)+;
 classs:
 	CLASS TYPE_IDENTIFIER (INHERITS TYPE_IDENTIFIER)? LBRACE (
 		feature SEMICOLON
-	)* RBRACE {print('FIND A CLASS')};
+	)* RBRACE;
 
 var_typescript:
 	<assoc = right> ID_VAR COLON TYPE_IDENTIFIER (ASSIGN expr)? # attributesDeclaration;
@@ -20,10 +20,10 @@ feature:
 formal: ID_VAR COLON TYPE_IDENTIFIER;
 
 expr:
-	expr (AT TYPE_IDENTIFIER)? PERIOD ID_VAR LPAREN (
+	ID_VAR LPAREN (expr (COMMA expr)*)* RPAREN			# FunctionCall
+	| expr (AT TYPE_IDENTIFIER)? PERIOD ID_VAR LPAREN (
 		expr (COMMA expr)*
 	)* RPAREN												# methodCall
-	| ID_VAR LPAREN (expr (COMMA expr)*)* RPAREN			# FunctionCall
 	| IF expr THEN expr ELSE expr FI						# if
 	| WHILE expr LOOP expr POOL								# while
 	| LBRACE (expr SEMICOLON)+ RBRACE						# block // ? Precedencia correcta?
