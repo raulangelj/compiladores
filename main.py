@@ -16,7 +16,7 @@ def main():
         file = sys.argv[1]
         input_stream = FileStream(file)
     except Exception as e:
-        raise Exception(f"ERROR: openong the file {file}") from e
+        raise Exception(f"ERROR: opening the file {file}") from e
 
     # lexer
     lexer = yaplLexer(input_stream)

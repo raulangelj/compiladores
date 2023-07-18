@@ -51,8 +51,8 @@ ASSIGN: '<-';
 ERROR: 'ERROR';
 
 // COMENTARIOS
-COMMENT_LINE: '--' ~[\r\n]* -> skip;
 COMMENT_BLOCK: '(*' .*? '*)' -> skip;
+COMMENT_LINE: '--' ~[\r\n]* -> skip;
 
 // ENTEROS
 INT_VAR: [0-9]+;
