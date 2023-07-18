@@ -68,7 +68,7 @@ STR_VAR : '"' (ESC_SEQ | ~['"])* '"' {
   text = self.text
 
   char_count = 0
-  char_limit = 1024
+  char_limit = 10
 
   eof = False
   toolong = False

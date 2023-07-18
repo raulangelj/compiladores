@@ -6,6 +6,7 @@ from dist.grammar.yaplParser import yaplParser
 from dist.grammar.yaplListener import yaplListener
 from antlr4.tree.Trees import Trees
 from Errors import ErrorListener
+from termcolor import colored
 
 def main():
     if len(sys.argv) < 2:
@@ -35,9 +36,14 @@ def main():
     # display parse tree in text form
     print(Trees.toStringTree(tree, None, parser))
     for i in token_stream.tokens:
-        print(i)
+        if i.type == yaplLexer.ERROR:
+            print(colored("ERROR: Bad token at line:", i.line, ":", i.column, 'red'))
+        else:
+            print(i)
     
-    # print(yaplLexer.ERROR)
+    if error_listener_lexer.true or error_listener_parser.true:
+        print(colored("ERROR: The program has errors", 'red'))
+        exit(1)
 
     # display parse tree in GUI
     command = f'antlr4-parse grammar/yapl.g4 program -gui'
