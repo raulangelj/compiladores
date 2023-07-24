@@ -5,6 +5,7 @@ class ErrorNode():
         self.message = None
     
     def get_error(self, left, right, operator):
+        
         self.message = f"Unsupported operation {operator}: in between {left.type} and {right.type}"
 
 class Node():
@@ -50,7 +51,36 @@ class MultNode(BiOperationNode):
         self.operator = '*'
         self.type = 'Integer'
 
+class LessThanNode(BiOperationNode):
+    def __init__(self, left, right):
+        super().__init__(left, right)
+        self.operator = '<'
+        self.type = 'Boolean'
+
+class LessEqualNode(BiOperationNode):
+    def __init__(self, left, right):
+        super().__init__(left, right)
+        self.operator = '<='
+        self.type = 'Boolean'
+    
+class EqualNode(BiOperationNode):
+    def __init__(self, left, right):
+        super().__init__(left, right)
+        self.operator = '='
+        self.type = 'Boolean'
+
+class NotNode(Node):
+    def __init__(self, token):
+        self.token = token
+        self.type = 'Not'
+
+class NegativeNode(Node):
+    def __init__(self, token):
+        self.token = token
+        self.type = 'Negative'
+
 class BooleanNode(Node):
     def __init__(self, token):
         self.token = token
+        self.operator = '!'
         self.type = 'Boolean'
