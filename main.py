@@ -1,12 +1,19 @@
 import sys
 import os
 from antlr4 import *
-from dist.grammar.yaplLexer import yaplLexer
-from dist.grammar.yaplParser import yaplParser
-from dist.grammar.yaplListener import yaplListener
+from yapl.grammar.yaplLexer import yaplLexer
+from yapl.grammar.yaplParser import yaplParser
+from yapl.custom.YaplVisitorCustom import YaplVisitorCustom
 from antlr4.tree.Trees import Trees
-from Errors import ErrorListener
+from yapl.custom.ErrorsListener import ErrorListener
 from termcolor import colored
+
+def print_all_tokens(token_stream):
+    for i in token_stream.tokens:
+        if i.type == yaplLexer.ERROR:
+            print(colored(f"ERROR: Bad token at line: {i.line} : {i.column}", 'red'))
+        else:
+            print(i)
 
 def main():
     if len(sys.argv) < 2:
@@ -34,22 +41,30 @@ def main():
     tree = parser.program()
 
     # display parse tree in text form
-    print(Trees.toStringTree(tree, None, parser))
-    for i in token_stream.tokens:
-        if i.type == yaplLexer.ERROR:
-            print(colored(f"ERROR: Bad token at line: {i.line} : {i.column}", 'red'))
-        else:
-            print(i)
+    # TODO: add flag -tree
+    # print(Trees.toStringTree(tree, None, parser))
+    # print_all_tokens(token_stream)
+
+    visitor = YaplVisitorCustom()
+    program = visitor.visit(tree)
+
+    # Semantic erros
+    if len(visitor.errors) > 0:
+        print(colored(f"ERROR: The program has {len(visitor.errors)} SEMANTIC errors", 'red'))
+        for error in visitor.errors:
+            print(colored(error.message, 'red'))
+        exit(1)
     
     if error_listener_lexer.true or error_listener_parser.true:
-        print(colored("ERROR: The program has errors", 'red'))
+        print(colored("ERROR: The program has LEXIC errors", 'red'))
         exit(1)
 
     # display parse tree in GUI
-    command = f'antlr4-parse grammar/yapl.g4 program -gui'
-    process = os.popen(command, 'w')
-    process.write(input_stream.strdata)
-    process.close()
+    # TODO: add flag -gui
+    # command = f'antlr4-parse grammar/yapl.g4 program -gui'
+    # process = os.popen(command, 'w')
+    # process.write(input_stream.strdata)
+    # process.close()
 
 if __name__ == '__main__':
     main()
