@@ -38,20 +38,20 @@ python main.py ./tests/<file_to_test>.cl
 If all the .cl file is good then it will render the tree otherwise it will show the error in terminal.
 
 TREE **simple.cl**
-<img title='simple.cl' alt='simple.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/simple.png?token=GHSAT0AAAAAACFG5E55ITQMTVFJWJ2J4KWCZFWEY4Q'>
-[SIMPLE.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/simple.png?token=GHSAT0AAAAAACFG5E55ITQMTVFJWJ2J4KWCZFWEY4Q)
+<img title='simple.cl' alt='simple.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/simple.png?token=GHSAT0AAAAAACFMOBP2PMH32VMOOJWNNDGYZF3JBKA'>
+[SIMPLE.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/simple.png?token=GHSAT0AAAAAACFMOBP2PMH32VMOOJWNNDGYZF3JBKA)
 
 TREE **complex1.cl**
-<img title='comple1.cl' alt='complex1.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/complex1.png?token=GHSAT0AAAAAACFG5E54IQVWIQBYICW22CNIZFWEZTQ'>
-[COMPLEX.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/complex1.png?token=GHSAT0AAAAAACFG5E54IQVWIQBYICW22CNIZFWEZTQ)
+<img title='comple1.cl' alt='complex1.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/complex1.png?token=GHSAT0AAAAAACFMOBP24RCEZYZPCS2EQKCGZF3JBYA'>
+[COMPLEX.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/complex1.png?token=GHSAT0AAAAAACFMOBP24RCEZYZPCS2EQKCGZF3JBYA)
 
 TERMINAL **string_too_long.cl**
-<img title='string_to_long.cl' alt='string_to_long.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/string_too_long.png?token=GHSAT0AAAAAACFG5E546OWQPDGWWAYQILKYZFWE2YQ'>
-[STRING_TOO_LONG.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/string_too_long.png?token=GHSAT0AAAAAACFG5E546OWQPDGWWAYQILKYZFWE2YQ)
+<img title='string_to_long.cl' alt='string_to_long.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/string_too_long.png?token=GHSAT0AAAAAACFMOBP2LHE4JVK47JF3FDO2ZF3JCFQ'>
+[STRING_TOO_LONG.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/string_too_long.png?token=GHSAT0AAAAAACFMOBP2LHE4JVK47JF3FDO2ZF3JCFQ)
 
 TERMINAL **bad_comment.cl**
-<img title='bad_comment.cl' alt='bad_comment.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/bad_comment.png?token=GHSAT0AAAAAACFG5E54TK42WLEIPECHTTH4ZFWE2BQ'>
-[BAD_COMMENT.cl](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/bad_comment.png?token=GHSAT0AAAAAACFG5E54TK42WLEIPECHTTH4ZFWE2BQ)
+<img title='bad_comment.cl' alt='bad_comment.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/bad_comment.png?token=GHSAT0AAAAAACFMOBP2RFIKX335DE4R5HL4ZF3JCRQ'>
+[BAD_COMMENT.cl](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/bad_comment.png?token=GHSAT0AAAAAACFMOBP2RFIKX335DE4R5HL4ZF3JCRQ)
 
 ## :star2: Authors
 
