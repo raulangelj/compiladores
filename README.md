@@ -14,10 +14,10 @@ You have to follow the official documentation for [ANTLR](https://github.com/ant
 
 ## :electric_plug: Compile
 
-1. Generate the grammar (This will generate the files in dist/grammar)
+1. Generate the grammar (This will generate the files in dist/grammar) (This is necessary if it is the first time running or if there was a change in the g4)
 
 ```python
-  antlr -Dlanguage=Python3 ./grammar/<FILE_NAME>.g4 -visitor -o dist
+  antlr4 -Dlanguage=Python3 ./grammar/<FILE_NAME>.g4 -visitor -o yapl/grammar
 ```
 
 2. Show the tree in the terminal, TOP_RULE in this case will be `program`
@@ -35,23 +35,11 @@ python main.py ./tests/<file_to_test>.cl
 
 ## :bookmark: Tests
 
-If all the .cl file is good then it will render the tree otherwise it will show the error in terminal.
+The test for this is "semantic_errors.cl"
 
-TREE **simple.cl**
-<img title='simple.cl' alt='simple.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/simple.png?token=GHSAT0AAAAAACFMOBP2PMH32VMOOJWNNDGYZF3JBKA'>
-[SIMPLE.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/simple.png?token=GHSAT0AAAAAACFMOBP2PMH32VMOOJWNNDGYZF3JBKA)
-
-TREE **complex1.cl**
-<img title='comple1.cl' alt='complex1.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/complex1.png?token=GHSAT0AAAAAACFMOBP24RCEZYZPCS2EQKCGZF3JBYA'>
-[COMPLEX.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/complex1.png?token=GHSAT0AAAAAACFMOBP24RCEZYZPCS2EQKCGZF3JBYA)
-
-TERMINAL **string_too_long.cl**
-<img title='string_to_long.cl' alt='string_to_long.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/string_too_long.png?token=GHSAT0AAAAAACFMOBP2LHE4JVK47JF3FDO2ZF3JCFQ'>
-[STRING_TOO_LONG.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/string_too_long.png?token=GHSAT0AAAAAACFMOBP2LHE4JVK47JF3FDO2ZF3JCFQ)
-
-TERMINAL **bad_comment.cl**
-<img title='bad_comment.cl' alt='bad_comment.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/bad_comment.png?token=GHSAT0AAAAAACFMOBP2RFIKX335DE4R5HL4ZF3JCRQ'>
-[BAD_COMMENT.cl](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab0/assets/bad_comment.png?token=GHSAT0AAAAAACFMOBP2RFIKX335DE4R5HL4ZF3JCRQ)
+SEMANTIC_ERRORS **semantic_errors.cl**
+<img title='semantic_errors.cl' alt='semantic_errors.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab1/assets/LAB1/semantic_errors.png?token=GHSAT0AAAAAACFPUSLFUTJ2BE4SLMEIT2AUZF7C6WQ'>
+[SEMANTIC_ERRORS.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab1/assets/LAB1/semantic_errors.png?token=GHSAT0AAAAAACFPUSLFUTJ2BE4SLMEIT2AUZF7C6WQ)
 
 ## :star2: Authors
 
