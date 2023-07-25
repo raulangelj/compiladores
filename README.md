@@ -40,7 +40,8 @@ python main.py ./tests/<file_to_test>.cl
 The test for this is "semantic_errors.cl"
 
 SEMANTIC_ERRORS **semantic_errors.cl**
-[SEMANTIC_ERRORS.CL](./assets/LAB1/semantic_errors.png)
+
+<img src="assets/LAB1/semantic_errors.png" alt="semantic_errors">
 
 ## :star2: Authors
 
