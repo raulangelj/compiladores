@@ -40,8 +40,7 @@ python main.py ./tests/<file_to_test>.cl
 The test for this is "semantic_errors.cl"
 
 SEMANTIC_ERRORS **semantic_errors.cl**
-<img title='semantic_errors.cl' alt='semantic_errors.cl' src='https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab1/assets/LAB1/semantic_errors.png?token=GHSAT0AAAAAACFPUSLFUTJ2BE4SLMEIT2AUZF7C6WQ'>
-[SEMANTIC_ERRORS.CL](https://raw.githubusercontent.com/raulangelj/compiladores/feat/lab1/assets/LAB1/semantic_errors.png?token=GHSAT0AAAAAACFPUSLFUTJ2BE4SLMEIT2AUZF7C6WQ)
+[SEMANTIC_ERRORS.CL](./assets/LAB1/semantic_errors.png)
 
 ## :star2: Authors
 
