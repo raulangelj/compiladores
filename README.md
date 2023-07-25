@@ -1,4 +1,4 @@
-# Compilers Lab 0
+# Compilers Lab 1
 
 ANTLR -> Parser/Lexer -> Tree gui
 
