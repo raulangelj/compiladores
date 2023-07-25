@@ -8,6 +8,8 @@ INDICE
 
 This is a python implementation of ANTLR to read a *.cl file parser and lexer it with ANTLR and then show in screen a tree of the file wiht a specific grammar.
 
+**The document for the semantic types can be found in**[THIS LINK](https://docs.google.com/document/d/1rENcILO97wyMBg6W2bGD8t54zeyllCEIRl2E6ZQi8Rs/edit?usp=sharing)
+
 ## :zap: Instalation
 
 You have to follow the official documentation for [ANTLR](https://github.com/antlr/antlr4/blob/master/doc/index.md)
