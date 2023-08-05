@@ -61,10 +61,10 @@ def main():
 
     # display parse tree in GUI
     # TODO: add flag -gui
-    # command = f'antlr4-parse grammar/yapl.g4 program -gui'
-    # process = os.popen(command, 'w')
-    # process.write(input_stream.strdata)
-    # process.close()
+    command = f'antlr4-parse grammar/yapl.g4 program -gui'
+    process = os.popen(command, 'w')
+    process.write(input_stream.strdata)
+    process.close()
 
 if __name__ == '__main__':
     main()

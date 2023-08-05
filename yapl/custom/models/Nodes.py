@@ -17,6 +17,36 @@ class BiOperationNode(Node):
         self.left = left
         self.right = right
 
+class AssignNode(Node):
+    def __init__(self, idx, value, _type):
+        self.idx = idx
+        self.value = value
+
+class AttrNode(Node):
+    def __init__(self, idx, _type, value = None):
+        self.idx = idx
+        self.type = _type
+        if not value:
+            self.set_default_value()
+        else:
+            self.value = value
+        
+    def set_default_value(self):
+        if self.type == 'Integer':
+            self.value = 0
+        elif self.type == 'String':
+            self.value = ''
+        elif self.type == 'Boolean':
+            self.value = False
+        else:
+            self.value = None  
+
+class AttributesDeclarationNode(AttrNode):
+    def __init__(self, idx, _type, value = None):
+        super().__init__(idx, _type, value)
+    
+        
+
 class IntegerNode(Node):
     def __init__(self, token):
         self.token = token

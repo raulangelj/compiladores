@@ -4,8 +4,8 @@ class Main inherits IO {
   c : String <- "holaaaaa";
   main() : SELF_TYPE {
     {
-        a <- a + b * c;
-          self;
+        a <- 1 + 1;
+        c <- "holaaaaa";
     }
   };
 };
