@@ -114,7 +114,7 @@ class YaplVisitorCustom(yaplVisitor):
         print(params)
         print(typex)
         print(body)
-        return Method(name, params, typex, body)
+        return MethodNode(name, typex, params, body)
 
     # def visitAttributesDeclaration(self, ctx:yaplParser.AttributesDeclarationContext):
     #     idx = ctx.ID_VAR().getText()

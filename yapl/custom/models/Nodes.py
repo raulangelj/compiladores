@@ -18,7 +18,7 @@ class BiOperationNode(Node):
         self.right = right
 
 class AssignNode(Node):
-    def __init__(self, idx, value, _type):
+    def __init__(self, idx, value):
         self.idx = idx
         self.value = value
 
@@ -39,7 +39,14 @@ class AttrNode(Node):
         elif self.type == 'Boolean':
             self.value = False
         else:
-            self.value = None  
+            self.value = None 
+
+class MethodNode(Node):
+    def __init__(self, name, params, return_type, body):
+        self.name = name
+        self.params = params
+        self.return_type = return_type
+        self.body = body
 
 class AttributesDeclarationNode(AttrNode):
     def __init__(self, idx, _type, value = None):
