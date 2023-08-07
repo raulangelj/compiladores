@@ -32,14 +32,18 @@ class AttrNode(Node):
             self.value = value
         
     def set_default_value(self):
-        if self.type == 'Integer':
+        if self.type == 'Int':
             self.value = 0
         elif self.type == 'String':
             self.value = ''
-        elif self.type == 'Boolean':
+        elif self.type == 'Bool':
             self.value = False
         else:
             self.value = None 
+
+class BlockNode(Node):
+    def __init__(self, statements):
+        self.statements = statements
 
 class MethodNode(Node):
     def __init__(self, name, params, return_type, body):
@@ -51,13 +55,19 @@ class MethodNode(Node):
 class AttributesDeclarationNode(AttrNode):
     def __init__(self, idx, _type, value = None):
         super().__init__(idx, _type, value)
-    
+
+
+class ClassNode(Node):
+    def __init__(self, name, inheritence, features):
+        self.name = name
+        self.inheritence = inheritence
+        self.features = features
         
 
 class IntegerNode(Node):
     def __init__(self, token):
         self.token = token
-        self.type = 'Integer'
+        self.type = 'Int'
 
 class StringNode(Node):
     def __init__(self, token):
@@ -68,43 +78,43 @@ class PlusNode(BiOperationNode):
     def __init__(self, left, right):
         super().__init__(left, right)
         self.operator = '+'
-        self.type = 'Integer'
+        self.type = 'Int'
 
 class MinusNode(BiOperationNode):
     def __init__(self, left, right):
         super().__init__(left, right)
         self.operator = '-'
-        self.type = 'Integer'
+        self.type = 'Int'
 
 class DivNode(BiOperationNode):
     def __init__(self, left, right):
         super().__init__(left, right)
         self.operator = '/'
-        self.type = 'Integer'
+        self.type = 'Int'
 
 class MultNode(BiOperationNode):
     def __init__(self, left, right):
         super().__init__(left, right)
         self.operator = '*'
-        self.type = 'Integer'
+        self.type = 'Int'
 
 class LessThanNode(BiOperationNode):
     def __init__(self, left, right):
         super().__init__(left, right)
         self.operator = '<'
-        self.type = 'Boolean'
+        self.type = 'Bool'
 
 class LessEqualNode(BiOperationNode):
     def __init__(self, left, right):
         super().__init__(left, right)
         self.operator = '<='
-        self.type = 'Boolean'
+        self.type = 'Bool'
     
 class EqualNode(BiOperationNode):
     def __init__(self, left, right):
         super().__init__(left, right)
         self.operator = '='
-        self.type = 'Boolean'
+        self.type = 'Bool'
 
 class NotNode(Node):
     def __init__(self, token):
@@ -120,4 +130,4 @@ class BooleanNode(Node):
     def __init__(self, token):
         self.token = token
         self.operator = '!'
-        self.type = 'Boolean'
+        self.type = 'Bool'
