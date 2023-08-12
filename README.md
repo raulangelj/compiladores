@@ -37,77 +37,71 @@ python main.py ./tests/<file_to_test>.cl
 
 ## :red_circle: Reglas semanticas
 
-Main
-Debe tener una clase Main
-La clase main solo puede heredar de IO
-La clase Main debe de tener un metodo main sin parametros - ¿Debe retornar SELF_TYPE?
-La ejecucion inicia evaluando (new Main).main()
+- [ ]  Main
+  - [ ] Debe tener una clase Main
+  - [ ] La clase main solo puede heredar de IO
+  - [ ] La clase Main debe de tener un metodo main sin parametros - ¿Debe retornar SELF_TYPE?
+  - [ ] La ejecucion inicia evaluando (new Main).main()
 
--[] BASICS Types
-  -[x] Int, String, Bool
-  -[] Se puede crear tipos de datos apartir de clases
-  -[] Las clases de tipos basicos no pueden ser padres de otras clases
+- [ ] BASICS Types
+  - [x] Int, String, Bool
+  - [ ] Se puede crear tipos de datos apartir de clases
+  - [ ] Las clases de tipos basicos no pueden ser padres de otras clases
 
-Scope
-Los atributos deben de ser definidos antes de su uso
-Un metodo puede ser llamado de forma recursiva - ! COMO VALIDARLO
-Ambito global y local, las variables let son locales
-Todos los atributos y metodos de las clases son publicos
-Scope local tiene prioridad sobre global
-Ningun identificador puede ser definido mas de una vez
-Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la
-misma firma con la que fue declarado en A. - ! NO ENTIENDO
-No se puede herencia multiple y herencia recursiva - ! NO ENTIENDO LA RECURSIVA
+- [ ] Scope
+  - [ ] Los atributos deben de ser definidos antes de su uso
+  - [ ] Un metodo puede ser llamado de forma recursiva - ! COMO VALIDARLO
+  - [ ] Ambito global y local, las variables let son locales
+  - [ ] Todos los atributos y metodos de las clases son publicos
+  - [ ] Scope local tiene prioridad sobre global
+  - [ ] Ningun identificador puede ser definido mas de una vez
+  - [ ] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A. - ! NO ENTIENDO
+  - [ ] No se puede herencia multiple y herencia recursiva - ! NO ENTIENDO LA RECURSIVA
 
--[x] Default
-  -[x] Int -> 0
-  -[x] String -> "" (cadena vacia)
-  -[x] Bool -> false
+- [x] Default
+  - [x] Int -> 0
+  - [x] String -> "" (cadena vacia)
+  - [x] Bool -> false
 
-Casteo
-Casteo implicito de Bool a Int (False es 0 y True es 1) - ! DONDE SE USA ESTE?
-Casteo implicito de Int a Bool (0 es False y 1 es True)
-NO se puede casteo explicito
+- [ ] Casteo
+  - [ ] Casteo implicito de Bool a Int (False es 0 y True es 1) - ! DONDE SE USA ESTE?
+  - [ ] Casteo implicito de Int a Bool (0 es False y 1 es True)
+  - [ ] NO se puede casteo explicito
 
-- [] Asignacion
-  -[x] `<id>` <- `<expr>`
-  -[] El tipo de expr debe ser del mismo tipo de id o puede ser heredado
-  -[x] El valor de `<expr>` se convierte a `<id>`
-  -[] El tipo de dato de la asignacion es el tipo de `<exp>`
-  -[] Si `<id>` es un atributo de alguna clase este debe de haberse definido antes
-  -[] Se pueden tener identificadores recurisivos [class1].[class2].[class3]...
+- [ ]  Asignacion
+  - [x] `<id>` <- `<expr>`
+  - [ ] El tipo de expr debe ser del mismo tipo de id o puede ser heredado
+  - [x] El valor de `<expr>` se convierte a `<id>`
+  - [ ] El tipo de dato de la asignacion es el tipo de `<exp>`
+  - [ ] Si `<id>` es un atributo de alguna clase este debe de haberse definido antes
+  - [ ] Se pueden tener identificadores recurisivos [class1].[class2].[class3]...
 
-Metodos y returns
-Los argumentos que son de tipo basicio se pasan por valor - int, string, bool?
-Los argumetnos que son de tipos derivados se pasan po referencia - objetos?
-Los argumentos del metodo son variables locales
-Los argumentos se evaluan de izquierda a derecha - ? como lo pruebo
-El tipo de retorno del metodo debe concidir con tipo de retorno
-Si se llama a un metodo en <id> <- <exp> el return se asiganra al <id>
+- [ ] Metodos y returns
+  - [ ] Los argumentos que son de tipo basicio se pasan por valor - int, string, bool?
+  - [ ] Los argumetnos que son de tipos derivados se pasan po referencia - objetos?
+  - [ ] Los argumentos del metodo son variables locales
+  - [ ] Los argumentos se evaluan de izquierda a derecha - ? como lo pruebo
+  - [ ] El tipo de retorno del metodo debe concidir con tipo de retorno
+  - [ ] Si se llama a un metodo en `<id>` <- `<exp>` el return se asiganra al `<id>`
 
-Estructuras de control
-El tipo estatico de un if o while debe de ser bool
-El tipo de dato del condicional if es el tipo de dato del bloque que sea un supertipo de
-ambas ramas del condicional. - ! NO COMPRENDO
-El tipo de dato de while es un Objeto
+- [ ] Estructuras de control
+  - [ ] El tipo estatico de un if o while debe de ser bool
+  - [ ] El tipo de dato del condicional if es el tipo de dato del bloque que sea un supertipo de ambas ramas del condicional. - ! NO COMPRENDO
+  - [ ] El tipo de dato de while es un Objeto
 
-Expresiones
-Los aritmeticos se aplican a variables tipo int y el resultado es int
-Los comparativos se aplica a datos que sean de la misma clase o que sean objetos que hereden de la misma clase. El resultado es bool - !ALGUNAS DUDAS
-La operacion ~ aplicado a tipo int devuelve un tipo int
-La operacion not en un dato bool devuelve un tipo bool
+- [ ] Expresiones
+  - [ ] Los aritmeticos se aplican a variables tipo int y el resultado es int
+  - [ ] Los comparativos se aplica a datos que sean de la misma clase o que sean objetos que hereden de la misma clase. El resultado es bool - !ALGUNAS DUDAS
+  - [ ] La operacion ~ aplicado a tipo int devuelve un tipo int
+  - [ ] La operacion not en un dato bool devuelve un tipo bool
 
-Clases especiales
-Clase IO que define funciones de entrada y salida de int y bool - ? NO ES INT Y STRING?
-La tabla de simbolos debe de tener definidas las clases IO, Int, String y Bool con sus metodos por defecto.
+- [ ] Clases especiales
+  - [ ] Clase IO que define funciones de entrada y salida de int y bool - ? NO ES INT Y STRING?
+  - [ ] La tabla de simbolos debe de tener definidas las clases IO, Int, String y Bool con sus metodos por defecto.
 
 ## :bookmark: Tests
 
-The test for this is "semantic_errors.cl"
-
-SEMANTIC_ERRORS **semantic_errors.cl**
-
-<img src="assets/LAB1/semantic_errors.png" alt="semantic_errors">
+TO DO
 
 ## :star2: Authors
 
