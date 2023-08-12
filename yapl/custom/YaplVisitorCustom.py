@@ -1,5 +1,6 @@
 from yapl.grammar.yaplVisitor import yaplVisitor
 from yapl.grammar.yaplParser import yaplParser
+from tabulate import tabulate
 from yapl.custom.models.Nodes import *
 from yapl.custom.models.Types import *
 
@@ -7,31 +8,32 @@ class YaplVisitorCustom(yaplVisitor):
     def __init__(self):
         self.types: List[Klass] = []
         self.errors = []
+        self._set_default_types()
 
     def _set_default_types(self):
         # Defaults types
         self.types.append(Klass('object', None))
         self.types.append(Klass('io', None))
-        self.types.append(Klass('integer', None))
-        self.types.append(Klass('string', None))
-        self.types.append(Klass('boolean', None))
+        self.types.append(Klass('Int', None))
+        self.types.append(Klass('String', None))
+        self.types.append(Klass('Bool', None))
         # Defaults methods
         # object
         self.types[0].define_method('abort', 'object', [])
-        self.types[0].define_method('type_name', 'string', [])
+        self.types[0].define_method('type_name', 'String', [])
         self.types[0].define_method('copy', 'object', [])
         # io
-        self.types[1].define_method('out_string', 'SELF_TYPE', [['x', 'string']])
-        self.types[1].define_method('out_int', 'SELF_TYPE', [['x', 'integer']])
-        self.types[1].define_method('in_string', 'string', [])
-        self.types[1].define_method('in_int', 'integer', [])
+        self.types[1].define_method('out_string', 'SELF_TYPE', [['x', 'String']])
+        self.types[1].define_method('out_int', 'SELF_TYPE', [['x', 'Int']])
+        self.types[1].define_method('in_string', 'String', [])
+        self.types[1].define_method('in_int', 'Int', [])
         # integer
         # does not have methods - default value is 0
-        # string - default value is ''
-        self.types[3].define_method('length', 'integer', [])
-        self.types[3].define_method('concat', 'string', [['s', 'string']])
-        self.types[3].define_method('substr', 'string', [['i', 'integer'], ['l', 'integer']])
-        # boolean - default value is false
+        # String - default value is ''
+        self.types[3].define_method('length', 'Int', [])
+        self.types[3].define_method('concat', 'String', [['s', 'String']])
+        self.types[3].define_method('substr', 'String', [['i', 'Int'], ['l', 'Int']])
+        # Bool - default value is false
         # does not have methods
 
     # custom visits
@@ -96,7 +98,7 @@ class YaplVisitorCustom(yaplVisitor):
     
     def visitNegative(self, ctx: yaplParser.NegativeContext):
         node = self.visit(ctx.expr())
-        print(node.type)
+        # print(node.type)
         self._getError(node, None, 'Negative')
         return NegativeNode(node)
     
@@ -105,16 +107,30 @@ class YaplVisitorCustom(yaplVisitor):
         expression = self.visit(ctx.expr())
         return AssignNode(idx, expression)
     
+    def visitBlock(self, ctx:yaplParser.BlockContext):
+        body_list = [self.visit(expr) for expr in ctx.expr()]
+        return BlockNode(body_list)
+    
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
         name = ctx.ID_VAR().getText()
         params = [self.visit(ctx.formal(i)) for i in range(len(ctx.formal()))]
         typex = ctx.TYPE_IDENTIFIER().getText()
         body = self.visit(ctx.expr())
-        print(name)
-        print(params)
-        print(typex)
-        print(body)
         return MethodNode(name, typex, params, body)
+    
+    def visitClasss(self, ctx:yaplParser.ClasssContext):
+        name = ctx.TYPE_IDENTIFIER(0).getText()
+        parent = ctx.TYPE_IDENTIFIER(1).getText() if ctx.TYPE_IDENTIFIER(1) is not None else None
+        feature = [self.visit(ctx.feature(i)) for i in range(len(ctx.feature()))]
+        # print(name)
+        # print(parent)
+        # print(feature)
+        scope = { 'class_name': name, 'method_name': None }
+        print('------------------')
+        for f in feature:
+            self._addSimbolToTable(scope, f)
+        return ClassNode(name, parent, feature)
+
 
     # def visitAttributesDeclaration(self, ctx:yaplParser.AttributesDeclarationContext):
     #     idx = ctx.ID_VAR().getText()
@@ -129,14 +145,42 @@ class YaplVisitorCustom(yaplVisitor):
         idx = ctx.ID_VAR().getText()
         typex = ctx.TYPE_IDENTIFIER().getText()
         expression = self.visit(ctx.expr()) if ctx.expr() is not None else None
-        print(expression)
-        print(typex)
-        print(idx)
+        # print(expression)
+        # print(typex)
+        # print(idx)
         return AttrNode(idx, typex, expression)
+    
+    def show_variables_table(self):
+        headers = ['Name', 'Type', 'Scope', 'Value']
+        table = []
+        for t in self.types:
+            if t.type == 'var':
+                scope = t.scope['class_name'] if t.scope['method_name'] is None else f'{t.scope["class_name"]} => {t.scope["method_name"]}'
+                table.append([t.name, t.inheritance, scope, t.value])
+        print("\n========== Variables Table ==========\n")
+        print(tabulate(table, headers, tablefmt="fancy_grid"))
+
+    
+    def _addSimbolToTable(self, scope: ScopeType, node: Node):
+        # print(type (node))
+        if isinstance(node, AttrNode):
+            print('attr')
+            self.types.append(Klass(node.idx, scope, 'var', node.type, node.value.token, node))
+        elif isinstance(node, MethodNode):
+            print('method')
+            for s in node.body.statements:
+                self._addSimbolToTable(scope, s)
+        elif isinstance(node, AssignNode):
+            print('assign')
+            # assign the value in the simbols table
+            for t in self.types:
+                if t.name == node.idx and t.scope == scope:
+                    t.value = node.value.token
+                    break
     
     def _arithmeticErros(self, left, right, operator):
         error = ErrorNode()
-        if left.type != 'Integer' or right.type != 'Integer':
+        if left.type != 'Int' or right.type != 'Int':
             error.get_error(left, right, operator)
             self.errors.append(error)
 
@@ -164,7 +208,7 @@ class YaplVisitorCustom(yaplVisitor):
                 self._comparisonErrors(left, right, operator)
             case 'Not':
                 # key 'not'
-                if left.type != 'Boolean':
+                if left.type != 'Bool':
                     error = ErrorNode()
                     error.message = f"Unsupported operation {operator}: with {left.type}"
                     self.errors.append(error)

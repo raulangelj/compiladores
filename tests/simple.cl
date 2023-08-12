@@ -4,8 +4,21 @@ class Main inherits IO {
   c : String <- "holaaaaa";
   main() : SELF_TYPE {
     {
-        a <- 1 + 1;
-        c <- "holaaaaa";
+        a <- 1;
+        c <- "ho";
+    }
+  };
+};
+
+class A {
+  a : Int <- 2;
+  b : Int;
+  d : Bool;
+  e : String;
+  c : String <- "holaaaaa";
+  main() : SELF_TYPE {
+    {
+        a <- 1;
     }
   };
 };

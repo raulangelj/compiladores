@@ -22,6 +22,12 @@ class AssignNode(Node):
         self.idx = idx
         self.value = value
 
+class LetNode(Node):
+    def __init__(self, idx, _type, value):
+        self.idx = idx
+        self.type = _type
+        self.value = value
+
 class AttrNode(Node):
     def __init__(self, idx, _type, value = None):
         self.idx = idx
@@ -33,11 +39,11 @@ class AttrNode(Node):
         
     def set_default_value(self):
         if self.type == 'Int':
-            self.value = 0
+            self.value = IntegerNode(0)
         elif self.type == 'String':
-            self.value = ''
+            self.value = StringNode('')
         elif self.type == 'Bool':
-            self.value = False
+            self.value = BooleanNode(False)
         else:
             self.value = None 
 

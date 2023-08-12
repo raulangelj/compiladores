@@ -59,6 +59,8 @@ def main():
         print(colored("ERROR: The program has LEXIC errors", 'red'))
         exit(1)
 
+    visitor.show_variables_table()
+
     # display parse tree in GUI
     # TODO: add flag -gui
     command = f'antlr4-parse grammar/yapl.g4 program -gui'

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Literal, TypedDict
 
 # every class is a type
 class Attribute():
@@ -18,13 +18,23 @@ class Method():
 
     def __eq__(self, __value: object) -> bool:
         return self.params == __value.params and self.return_type == __value.return_type
+    
+class ScopeType(TypedDict):
+    class_name: str
+    method_name: str
 
 class Klass():
-    def __init__(self, name: str, parent: str = 'object'):
+    def __init__(self, name: str, scope: ScopeType = None, _type: Literal['class', 'var'] = 'class', inheritance: str = None, value = None, node = None):
+        # TODO refactorizar, crear una class klass y otra var que herede de Type que es esta
         self.name = name
-        self.parent = parent
-        self.attributes = {}
-        self.methods = {}
+        self.scope = scope
+        self.type = _type
+        self.inheritance = inheritance # * is the type of var or class
+        self.node = node
+        self.attributes = {} # ! only for class
+        self.methods = {} #! only for class
+        if _type == 'var':
+            self.value = value if value else self._default_type()
 
     def get_attribute(self, name: str) -> Attribute:
         return self.attributes[name] if name in self.attributes else None
@@ -38,7 +48,14 @@ class Klass():
     def define_method(self, name: str, return_type: str, params: List[List[str]]):
         params_list = [Attribute(param[0], param[1]) for param in params]
         self.methods[name] = Method(name, return_type, params_list)
-
-
-
+    
+    def _default_type(self):
+        if self.inheritance == 'Int':
+            return 0
+        elif self.inheritance == 'String':
+            return ''
+        elif self.inheritance == 'Bool':
+            return False
+        else:
+            return None
     
