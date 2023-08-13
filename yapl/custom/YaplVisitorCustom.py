@@ -255,7 +255,6 @@ class YaplVisitorCustom(yaplVisitor):
         for i in range(len(ctx.feature())):
             f = self.visit(ctx.feature(i))
             if isinstance(f, MethodNode):
-                # methods.append(f)
                 # * add methods to table in class
                 for c in self.types:
                     if c.name == name and c.type == 'class':
@@ -278,7 +277,11 @@ class YaplVisitorCustom(yaplVisitor):
             ]:
                 parent_class = parent_class[0]
                 for m in parent_class.methods:
-                    self.types[-1].define_method(m, parent_class.methods[m].return_type, parent_class.methods[m].params)
+                    for c in self.types:
+                        if c.name == name and c.type == 'class':
+                            c.define_method(m, parent_class.methods[m].return_type, parent_class.methods[m].params)
+                            break
+                    # self.types[-1].define_method(m, parent_class.methods[m].return_type, parent_class.methods[m].params)
         # TODO falta el type
         return nodo
 
