@@ -13,7 +13,7 @@ class YaplVisitorCustom(yaplVisitor):
     def _set_default_types(self):
         # Defaults types
         self.types.append(Klass('object', None))
-        self.types.append(Klass('io', None))
+        self.types.append(Klass('IO', None))
         self.types.append(Klass('Int', None))
         self.types.append(Klass('String', None))
         self.types.append(Klass('Bool', None))
@@ -184,6 +184,14 @@ class YaplVisitorCustom(yaplVisitor):
         # * add methods to table
         for m in methods:
             self.types[-1].define_method(m.name, m.return_type, m.params)
+        # * add methods from parent to table
+        if parent:
+            if parent_class := [
+                t for t in self.types if t.name == parent and t.type == 'class'
+            ]:
+                parent_class = parent_class[0]
+                for m in parent_class.methods:
+                    self.types[-1].define_method(m, parent_class.methods[m].return_type, parent_class.methods[m].params)
         # TODO falta el type
         return nodo
 
