@@ -92,8 +92,8 @@ python main.py ./tests/<file_to_test>.cl
 - [ ] Expresiones
   - [x] Los aritmeticos se aplican a variables tipo int y el resultado es int
   - [ ] Los comparativos se aplica a datos que sean de la misma clase o que sean objetos que hereden de la misma clase. El resultado es bool - !ALGUNAS DUDAS
-  - [ ] La operacion ~ aplicado a tipo int devuelve un tipo int
-  - [ ] La operacion not en un dato bool devuelve un tipo bool
+  - [x] La operacion ~ aplicado a tipo int devuelve un tipo int
+  - [x] La operacion not en un dato bool devuelve un tipo bool
 
 - [x] Clases especiales
   - [x] Clase IO que define funciones de entrada y salida de int y string

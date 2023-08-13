@@ -124,6 +124,7 @@ class YaplVisitorCustom(yaplVisitor):
         node = self.visit(ctx.expr())
         self._getError(node, None, 'Not')
         nodo = NotNode(node)
+        nodo.type = node.type
         nodo.line = ctx.NOT().symbol.line
         return nodo
     
@@ -131,6 +132,7 @@ class YaplVisitorCustom(yaplVisitor):
         node = self.visit(ctx.expr())
         self._getError(node, None, 'Negative')
         nodo = NegativeNode(node)
+        nodo.type = node.type
         nodo.line = ctx.NEGATIVE().symbol.line
         return nodo
     
