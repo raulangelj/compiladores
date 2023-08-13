@@ -48,6 +48,7 @@ def main():
     visitor = YaplVisitorCustom()
     program = visitor.visit(tree)
 
+    visitor.check_global_semantics()
     # Semantic erros
     if len(visitor.errors) > 0:
         print(colored(f"ERROR: The program has {len(visitor.errors)} SEMANTIC errors", 'red'))
@@ -58,8 +59,8 @@ def main():
     if error_listener_lexer.true or error_listener_parser.true:
         print(colored("ERROR: The program has LEXIC errors", 'red'))
         exit(1)
-
     visitor.show_variables_table()
+    visitor.show_classes_table()
 
     # display parse tree in GUI
     # TODO: add flag -gui

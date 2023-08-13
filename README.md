@@ -38,9 +38,9 @@ python main.py ./tests/<file_to_test>.cl
 ## :red_circle: Reglas semanticas
 
 - [ ]  Main
-  - [ ] Debe tener una clase Main
-  - [ ] La clase main solo puede heredar de IO
-  - [ ] La clase Main debe de tener un metodo main sin parametros - ¿Debe retornar SELF_TYPE?
+  - [x] Debe tener una clase Main
+  - [x] La clase main solo puede heredar de IO
+  - [x] La clase Main debe de tener un metodo main sin parametros
   - [ ] La ejecucion inicia evaluando (new Main).main()
 
 - [ ] BASICS Types
@@ -90,14 +90,14 @@ python main.py ./tests/<file_to_test>.cl
   - [ ] El tipo de dato de while es un Objeto
 
 - [ ] Expresiones
-  - [ ] Los aritmeticos se aplican a variables tipo int y el resultado es int
+  - [x] Los aritmeticos se aplican a variables tipo int y el resultado es int
   - [ ] Los comparativos se aplica a datos que sean de la misma clase o que sean objetos que hereden de la misma clase. El resultado es bool - !ALGUNAS DUDAS
   - [ ] La operacion ~ aplicado a tipo int devuelve un tipo int
   - [ ] La operacion not en un dato bool devuelve un tipo bool
 
-- [ ] Clases especiales
-  - [ ] Clase IO que define funciones de entrada y salida de int y bool - ? NO ES INT Y STRING?
-  - [ ] La tabla de simbolos debe de tener definidas las clases IO, Int, String y Bool con sus metodos por defecto.
+- [x] Clases especiales
+  - [x] Clase IO que define funciones de entrada y salida de int y string
+  - [x] La tabla de simbolos debe de tener definidas las clases IO, Int, String y Bool con sus metodos por defecto.
 
 ## :bookmark: Tests
 

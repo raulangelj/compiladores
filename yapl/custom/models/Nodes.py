@@ -1,11 +1,11 @@
-
+from typing import List
+from yapl.custom.models.Types import Attribute
 class ErrorNode():
     def __init__(self):
         self.type = 'Error'
         self.message = None
     
     def get_error(self, left, right, operator):
-        
         self.message = f"Unsupported operation {operator}: in between {left.type} and {right.type}"
 
 class Node():
@@ -53,7 +53,7 @@ class BlockNode(Node):
         self.statements = statements
 
 class MethodNode(Node):
-    def __init__(self, name, params, return_type, body):
+    def __init__(self, name, params: List[Attribute], return_type, body):
         self.name = name
         self.params = params
         self.return_type = return_type
@@ -126,7 +126,8 @@ class EqualNode(BiOperationNode):
 class NotNode(Node):
     def __init__(self, token):
         self.token = token
-        self.type = 'Not'
+        # self.type = 'Not'
+        self.type = 'Bool'
 
 class NegativeNode(Node):
     def __init__(self, token):
@@ -138,3 +139,8 @@ class BooleanNode(Node):
         self.token = token
         self.operator = '!'
         self.type = 'Bool'
+
+class IdNode(Node):
+    def __init__(self, token):
+        self.token = token
+        self.type = 'Id'

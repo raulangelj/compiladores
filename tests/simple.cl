@@ -14,12 +14,23 @@ class A {
 class Main inherits IO {
   a : Int <- 2;
   -- FALTA VALIDAR ESTO: b : A;
-  c : String <- 3;
+  --c : String <- 3;
+  d : String;
+  n: Bool <- true;
+  pruebavar : Int;
   main() : SELF_TYPE {
     {
-        a <- "d";
-        c <- "ho";
-        z <- 1;
+        a <- 1 + a;
+        --a <- "d";
+        d <- "ho";
+        --z <- 1;
+        n <- 1 < 2;
+    }
+  };
+
+  prueba(n: Int) : Int {
+    {
+      pruebavar <- 1;
     }
   };
 };

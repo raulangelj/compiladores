@@ -45,9 +45,15 @@ class Klass():
     def define_attribute(self, name: str, _type: str):
         self.attributes[name] = Attribute(name, _type)
 
-    def define_method(self, name: str, return_type: str, params: List[List[str]]):
-        params_list = [Attribute(param[0], param[1]) for param in params]
-        self.methods[name] = Method(name, return_type, params_list)
+    def define_method(self, name: str, return_type: str, params: List[Attribute]):
+        # params_list = [Attribute(param[0], param[1]) for param in params]
+        self.methods[name] = Method(name, return_type, params)
+
+    def get_methods_names(self) -> List[str]:
+        return list(self.methods.keys())
+    
+    def get_attributes_names(self) -> List[str]:
+        return list(self.attributes.keys())
     
     def _default_type(self):
         if self.inheritance == 'Int':
