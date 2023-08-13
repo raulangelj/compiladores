@@ -51,37 +51,53 @@ class YaplVisitorCustom(yaplVisitor):
     def visitPlus(self, ctx:yaplParser.PlusContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        self._getError(left, right, '+')
+        valid = self._getError(left, right, '+')
         nodo = PlusNode(left, right)
         nodo.line = ctx.PLUS().symbol.line
         nodo.token = '+'
+        nodo.type = 'Int'
+        if valid == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo            
         return nodo
     
     def visitMinus(self, ctx:yaplParser.MinusContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        self._getError(left, right, '-')
+        valid = self._getError(left, right, '-')
         nodo = MinusNode(left, right)
         nodo.line = ctx.MINUS().symbol.line
         nodo.token = '-'
+        nodo.type = 'Int'
+        if valid == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo   
         return nodo
     
     def visitMult(self, ctx:yaplParser.MultContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        self._getError(left, right, '*')
+        valid = self._getError(left, right, '*')
         node = MultNode(left, right)
         node.line = ctx.MULT().symbol.line
         node.token = '*'
+        node.type = 'Int'
+        if valid == 'ERROR':
+            node.type = 'ERROR'
+            return node   
         return node
     
     def visitDiv(self, ctx: yaplParser.DivContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        self._getError(left, right, '/')
+        valid = self._getError(left, right, '/')
         nodo = DivNode(left, right)
         nodo.line = ctx.DIV().symbol.line
         nodo.token = '/'
+        nodo.type = 'Int'
+        if valid == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo   
         return nodo
 
     def visitTrue(self, ctx: yaplParser.TrueContext):
@@ -97,28 +113,40 @@ class YaplVisitorCustom(yaplVisitor):
     def visitLess(self, ctx: yaplParser.LessContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        self._getError(left, right, '<')
+        valid = self._getError(left, right, '<')
         nodo = LessThanNode(left, right)
         nodo.line = ctx.LESS_THAN().symbol.line
         nodo.token =  ctx.LESS_THAN().getText()
+        nodo.type = 'Bool'
+        if valid == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo   
         return nodo
     
     def visitLess_equal(self, ctx: yaplParser.Less_equalContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        self._getError(left, right, '<=')
+        valid = self._getError(left, right, '<=')
         nodo = LessEqualNode(left, right)
         nodo.line = ctx.LESS_EQUAL().symbol.line
         nodo.token = ctx.LESS_EQUAL().getText()
+        nodo.type = 'Bool'
+        if valid == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo   
         return nodo
     
     def visitEqual(self, ctx: yaplParser.EqualContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        self._getError(left, right, '=')
+        valid = self._getError(left, right, '=')
         nodo = EqualNode(left, right)
         nodo.line = ctx.EQUAL().symbol.line
         nodo.token = ctx.EQUAL().getText()
+        nodo.type = 'Bool'
+        if valid == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo
         return nodo
     
     def visitNot(self, ctx: yaplParser.NotContext):
@@ -154,12 +182,56 @@ class YaplVisitorCustom(yaplVisitor):
         body_list = [self.visit(expr) for expr in ctx.expr()]
         nodo = BlockNode(body_list)
         nodo.line = ctx.LBRACE().symbol.line
+        nodo.type = self._get_super_type(body_list)
         # TODO falta el type
+        return nodo
+    
+    def _get_super_type(self, features: Node):
+        same_type = all(f.type == features[0].type for f in features)
+        return 'object' if not same_type else features[0].type
+
+    
+    def visitWhile(self, ctx:yaplParser.WhileContext):
+        condition = self.visit(ctx.expr(0))
+        expression = self.visit(ctx.expr(1))
+        nodo = WhileNode(condition, expression)
+        nodo.line = ctx.WHILE().symbol.line
+        nodo.type = 'object'
+        # * if contidion is an id check if it is defined
+        valid_condition = self._check_for_use_id(condition)
+        if valid_condition == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo
+        # * Check if condition is bool
+        if condition.type != 'Bool':
+            error = ErrorNode()
+            error.message = f"ERROR on line {ctx.WHILE().symbol.line}: Condition must be Bool"
+            self.errors.append(error)
+            nodo.type = 'ERROR'
+        return nodo
+    
+    def visitIf(self, ctx:yaplParser.IfContext):
+        condition = self.visit(ctx.expr(0))
+        then_body = self.visit(ctx.expr(1))
+        else_body = self.visit(ctx.expr(2))
+        nodo = IfNode(condition, then_body, else_body)
+        nodo.line = ctx.IF().symbol.line
+        nodo.typ = self._get_super_type([then_body, else_body])
+        # * if contidion is an id check if it is defined
+        valid_condition = self._check_for_use_id(condition)
+        if valid_condition == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo
+        # * Check if condition is bool
+        if condition.type != 'Bool':
+            error = ErrorNode()
+            error.message = f"ERROR on line {ctx.IF().symbol.line}: Condition must be Bool"
+            self.errors.append(error)
+            nodo.type = 'ERROR'
         return nodo
     
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
         name = ctx.ID_VAR().getText()
-        # params = [self.visit(ctx.formal(i)) for i in range(len(ctx.formal()))]
         params = []
         for i in range(len(ctx.formal())):
             idx = ctx.formal(i).ID_VAR().getText()

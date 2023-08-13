@@ -21,12 +21,22 @@ class Main inherits IO {
   e: Int <- 2;
   main() : SELF_TYPE {
     {
-        a <- 1 + aa;
+        a <- 1 + a;
         --a <- "d";
         d <- "ho";
         --z <- 1;
         n <- not n;
         n <- 1 < e;
+        if n then {
+          a <- 1;
+        } else {
+          a <- 2;
+          d <- "hola";
+        }
+        fi;
+        while n loop {
+          a <- 1;
+        } pool;
     }
   };
 

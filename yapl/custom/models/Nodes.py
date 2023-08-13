@@ -144,3 +144,14 @@ class IdNode(Node):
     def __init__(self, token):
         self.token = token
         self.type = 'Id'
+
+class IfNode(Node):
+    def __init__(self, condition, then_body, else_body):
+        self.condition = condition
+        self.then_body = then_body
+        self.else_body = else_body
+
+class WhileNode(Node):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.expression = body

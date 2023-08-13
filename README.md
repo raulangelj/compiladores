@@ -84,10 +84,10 @@ python main.py ./tests/<file_to_test>.cl
   - [ ] El tipo de retorno del metodo debe concidir con tipo de retorno
   - [ ] Si se llama a un metodo en `<id>` <- `<exp>` el return se asiganra al `<id>`
 
-- [ ] Estructuras de control
-  - [ ] El tipo estatico de un if o while debe de ser bool
-  - [ ] El tipo de dato del condicional if es el tipo de dato del bloque que sea un supertipo de ambas ramas del condicional. - ! NO COMPRENDO
-  - [ ] El tipo de dato de while es un Objeto
+- [x] Estructuras de control
+  - [x] El tipo estatico de un if o while debe de ser bool
+  - [x] El tipo de dato del condicional if es el tipo de dato del bloque que sea un supertipo de ambas ramas del condicional
+  - [x] El tipo de dato de while es un Objeto
 
 - [ ] Expresiones
   - [x] Los aritmeticos se aplican a variables tipo int y el resultado es int
