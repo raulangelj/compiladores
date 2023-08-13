@@ -9,6 +9,7 @@ class YaplVisitorCustom(yaplVisitor):
         self.types: List[Klass] = []
         self.errors = []
         self._set_default_types()
+        self.active_scope: ScopeType = { 'class_name': None, 'method_name': None }
 
     def _set_default_types(self):
         # Defaults types
@@ -174,18 +175,25 @@ class YaplVisitorCustom(yaplVisitor):
     def visitClasss(self, ctx:yaplParser.ClasssContext):
         name = ctx.TYPE_IDENTIFIER(0).getText()
         parent = ctx.TYPE_IDENTIFIER(1).getText() if ctx.TYPE_IDENTIFIER(1) is not None else None
-        feature = [self.visit(ctx.feature(i)) for i in range(len(ctx.feature()))]
+        # * add class to table
+        self.types.append(Klass(name, None, 'class', parent))
+        feature = []
+        methods =[]
         scope = { 'class_name': name, 'method_name': None }
-        methods = [f for f in feature if isinstance(f, MethodNode)]
-        for f in feature:
+        self.active_scope = scope
+        for i in range(len(ctx.feature())):
+            f = self.visit(ctx.feature(i))
+            if isinstance(f, MethodNode):
+                # methods.append(f)
+                # * add methods to table in class
+                for c in self.types:
+                    if c.name == name and c.type == 'class':
+                        c.define_method(f.name, f.return_type, f.params)
+                        break
+            feature.append(f)
             self._addSimbolToTable(scope, f)
         nodo = ClassNode(name, parent, feature)
         nodo.line = ctx.CLASS().symbol.line
-        # * add class to table
-        self.types.append(Klass(name, None, 'class', parent, None, nodo))
-        # * add methods to table
-        for m in methods:
-            self.types[-1].define_method(m.name, m.return_type, m.params)
         # * add methods from parent to table
         if parent:
             if parent_class := [
@@ -295,50 +303,87 @@ class YaplVisitorCustom(yaplVisitor):
                             self.errors.append(error)
                         t.value = node.value.token
                         break
+
+    def _check_for_use_id(self, node: Node) -> str or None:
+        error = ErrorNode()
+        if node.type == 'Id':
+            if not self._is_defined(node.token, self.active_scope):
+                error.message = f"ERROR on line {node.line}: Variable {node.token} is not defined"
+                self.errors.append(error)
+                return 'ERROR'
+            else:
+                for t in self.types:
+                    if t.name == node.token and t.scope == self.active_scope:
+                        node.type = t.inheritance
+                        return None
+        return None
     
-    def _arithmeticErros(self, left, right, operator):
+    def _arithmeticErros(self, left, right, operator) -> str or None:
         error = ErrorNode()
         # show error if left or right is not Int type but if is Id let it pass
-        if left.type not in ['Int', 'Id'] or right.type not in ['Int', 'Id']:
+        # if one is ID check in the simbols to see if it is defined
+        valid_left = self._check_for_use_id(left)
+        valid_right = self._check_for_use_id(right)
+        if valid_left == 'ERROR' or valid_right == 'ERROR':
+            return 'ERROR'
+        if left.type not in ['Int'] or right.type not in ['Int']:
             error.get_error(left, right, operator)
             self.errors.append(error)
+            return 'ERROR'
+        return None
 
-    def _comparisonErrors(self, left, right, operator):
+    def _comparisonErrors(self, left, right, operator) -> str or None:
         error = ErrorNode()
+        # if one is ID check in the simbols to see if it is defined
+        valid_left = self._check_for_use_id(left)
+        valid_right = self._check_for_use_id(right)
+        if valid_left == 'ERROR' or valid_right == 'ERROR':
+            return 'ERROR'
         if left.type != right.type:
             error.get_error(left, right, operator)
             self.errors.append(error)
+            return 'ERROR'
+        return None
     
-    def _getError(self, left, right, operator):
+    def _getError(self, left, right, operator) -> str or None:
         match operator:
             case '+':
-                self._arithmeticErros(left, right, operator)
+                return self._arithmeticErros(left, right, operator)
             case '-':
-                self._arithmeticErros(left, right, operator)
+                return self._arithmeticErros(left, right, operator)
             case '*':
-                self._arithmeticErros(left, right, operator)
+                return self._arithmeticErros(left, right, operator)
             case '/':
-                self._arithmeticErros(left, right, operator)
+                return self._arithmeticErros(left, right, operator)
             case '<':
-                self._comparisonErrors(left, right, operator)
+                return self._comparisonErrors(left, right, operator)
             case '<=':
-                self._comparisonErrors(left, right, operator)
+                return self._comparisonErrors(left, right, operator)
             case '=':
-                self._comparisonErrors(left, right, operator)
+                return self._comparisonErrors(left, right, operator)
             case 'Not':
                 # key 'not'
-                if left.type not in ['Bool', 'Id']:
-                    self._extracted_from__getError_20(operator, left)
+                if left.type == 'Id':
+                    valid_left = self._check_for_use_id(left)
+                    if valid_left == 'ERROR':
+                        return 'ERROR'
+                if left.type not in ['Bool']:
+                    return self._add_unsupported_errror(operator, left)
             case 'Negative':
                 # key '~'
+                if left.type == 'Id':
+                    valid_left = self._check_for_use_id(left)
+                    if valid_left == 'ERROR':
+                        return 'ERROR'
                 if left.type == 'String':
-                    self._extracted_from__getError_20(operator, left)
+                    return self._add_unsupported_errror(operator, left)
             case _:
-                pass
+                return None
 
     # TODO Rename this here and in `_getError`
-    def _extracted_from__getError_20(self, operator, left):
+    def _add_unsupported_errror(self, operator, left) -> str:
         error = ErrorNode()
         error.message = f"Unsupported operation {operator}: with {left.type}"
         self.errors.append(error)
+        return 'ERROR'
             

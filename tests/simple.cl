@@ -18,13 +18,15 @@ class Main inherits IO {
   d : String;
   n: Bool <- true;
   pruebavar : Int;
+  e: Int <- 2;
   main() : SELF_TYPE {
     {
-        a <- 1 + a;
+        a <- 1 + aa;
         --a <- "d";
         d <- "ho";
         --z <- 1;
-        n <- 1 < 2;
+        n <- not n;
+        n <- 1 < e;
     }
   };
 
