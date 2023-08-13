@@ -70,7 +70,7 @@ python main.py ./tests/<file_to_test>.cl
 
 - [ ]  Asignacion
   - [x] `<id>` <- `<expr>`
-  - [ ] El tipo de expr debe ser del mismo tipo de id o puede ser heredado
+  - [x] El tipo de expr debe ser del mismo tipo de id o puede ser heredado
   - [x] El valor de `<expr>` se convierte a `<id>`
   - [x] El tipo de dato de la asignacion es el tipo de `<exp>`
   - [x] Si `<id>` es un atributo de alguna clase este debe de haberse definido antes
