@@ -1,15 +1,3 @@
-class Main inherits IO {
-  a : Int <- 2;
-  b : Int <- 5;
-  c : String <- "holaaaaa";
-  main() : SELF_TYPE {
-    {
-        a <- 1;
-        c <- "ho";
-    }
-  };
-};
-
 class A {
   a : Int <- 2;
   b : Int;
@@ -19,6 +7,19 @@ class A {
   main() : SELF_TYPE {
     {
         a <- 1;
+    }
+  };
+};
+
+class Main inherits IO {
+  a : Int <- 2;
+  -- FALTA VALIDAR ESTO: b : A;
+  c : String <- 3;
+  main() : SELF_TYPE {
+    {
+        a <- "d";
+        c <- "ho";
+        z <- 1;
     }
   };
 };

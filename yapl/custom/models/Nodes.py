@@ -11,6 +11,7 @@ class ErrorNode():
 class Node():
     def __init__(self):
         self.type = None
+        self.line = None
 
 class BiOperationNode(Node):
     def __init__(self, left, right):
