@@ -250,7 +250,6 @@ class YaplVisitorCustom(yaplVisitor):
         # * add class to table
         self.types.append(Klass(name, None, 'class', parent))
         feature = []
-        methods =[]
         scope = { 'class_name': name, 'method_name': None }
         self.active_scope = scope
         for i in range(len(ctx.feature())):
@@ -266,6 +265,12 @@ class YaplVisitorCustom(yaplVisitor):
             self._addSimbolToTable(scope, f)
         nodo = ClassNode(name, parent, feature)
         nodo.line = ctx.CLASS().symbol.line
+        # * check if parent is not one of the basic types
+        if parent in ['Int', 'String', 'Bool']:
+            error = ErrorNode()
+            error.message = f"ERROR on line {ctx.CLASS().symbol.line}: Cannot inherit from {parent}"
+            self.errors.append(error)
+            nodo.type = 'ERROR'
         # * add methods from parent to table
         if parent:
             if parent_class := [

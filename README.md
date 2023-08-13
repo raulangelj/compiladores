@@ -46,7 +46,7 @@ python main.py ./tests/<file_to_test>.cl
 - [ ] BASICS Types
   - [x] Int, String, Bool
   - [ ] Se puede crear tipos de datos apartir de clases
-  - [ ] Las clases de tipos basicos no pueden ser padres de otras clases
+  - [x] Las clases de tipos basicos no pueden ser padres de otras clases
 
 - [ ] Scope
   - [ ] Los atributos deben de ser definidos antes de su uso
