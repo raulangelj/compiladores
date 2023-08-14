@@ -372,6 +372,12 @@ class YaplVisitorCustom(yaplVisitor):
             for s in node.body.statements:
                 new_scope = { 'class_name': scope['class_name'], 'method_name': node.name }
                 self._addSimbolToTable(new_scope, s)
+            # TODO check if a local var is the same type as the return type
+            if node.body.statements[-1].type != node.return_type != 'SELF_TYPE':
+                error = ErrorNode()
+                error.message = f"ERROR on line {node.line}: Method {node.name} must return {node.return_type}"
+                self.errors.append(error)
+                return 'ERROR'
         elif isinstance(node, AssignNode):
             print('assign')
             # * CHECK if variable is defined
