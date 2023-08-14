@@ -6,34 +6,35 @@ from yapl.custom.models.Types import *
 
 class YaplVisitorCustom(yaplVisitor):
     def __init__(self):
-        self.types: List[Klass] = []
+        # self.types: List[Klass] = []
+        self.types: dict[str, Klass] = {}
         self.errors = []
         self._set_default_types()
         self.active_scope: ScopeType = { 'class_name': None, 'method_name': None }
 
     def _set_default_types(self):
         # Defaults types
-        self.types.append(Klass('object', None))
-        self.types.append(Klass('IO', None))
-        self.types.append(Klass('Int', None))
-        self.types.append(Klass('String', None))
-        self.types.append(Klass('Bool', None))
+        self.types['object'] = Klass('object', None)
+        self.types['IO'] = Klass('IO', None)
+        self.types['Int'] = Klass('Int', None)
+        self.types['String'] = Klass('String', None)
+        self.types['Bool'] = Klass('Bool', None)
         # Defaults methods
         # object
-        self.types[0].define_method('abort', 'object', [])
-        self.types[0].define_method('type_name', 'String', [])
-        self.types[0].define_method('copy', 'object', [])
+        self.types['object'].define_method('abort', 'object', [])
+        self.types['object'].define_method('type_name', 'String', [])
+        self.types['object'].define_method('copy', 'object', [])
         # io
-        self.types[1].define_method('out_string', 'SELF_TYPE', [['x', 'String']])
-        self.types[1].define_method('out_int', 'SELF_TYPE', [['x', 'Int']])
-        self.types[1].define_method('in_string', 'String', [])
-        self.types[1].define_method('in_int', 'Int', [])
+        self.types['IO'].define_method('out_string', 'SELF_TYPE', [['x', 'String']])
+        self.types['IO'].define_method('out_int', 'SELF_TYPE', [['x', 'Int']])
+        self.types['IO'].define_method('in_string', 'String', [])
+        self.types['IO'].define_method('in_int', 'Int', [])
         # integer
         # does not have methods - default value is 0
         # String - default value is ''
-        self.types[3].define_method('length', 'Int', [])
-        self.types[3].define_method('concat', 'String', [['s', 'String']])
-        self.types[3].define_method('substr', 'String', [['i', 'Int'], ['l', 'Int']])
+        self.types['String'].define_method('length', 'Int', [])
+        self.types['String'].define_method('concat', 'String', [['s', 'String']])
+        self.types['String'].define_method('substr', 'String', [['i', 'Int'], ['l', 'Int']])
         # Bool - default value is false
         # does not have methods
 
@@ -188,7 +189,7 @@ class YaplVisitorCustom(yaplVisitor):
     
     def _get_super_type(self, features: Node):
         same_type = all(f.type == features[0].type for f in features)
-        return 'object' if not same_type else features[0].type
+        return features[0].type if same_type else 'object'
 
     
     def visitWhile(self, ctx:yaplParser.WhileContext):
@@ -247,8 +248,13 @@ class YaplVisitorCustom(yaplVisitor):
     def visitClasss(self, ctx:yaplParser.ClasssContext):
         name = ctx.TYPE_IDENTIFIER(0).getText()
         parent = ctx.TYPE_IDENTIFIER(1).getText() if ctx.TYPE_IDENTIFIER(1) is not None else None
-        # * add class to table
-        self.types.append(Klass(name, None, 'class', parent))
+        # * add class to table if not exists
+        if name not in self.types:
+            self.types[name] = Klass(name, None, 'class', parent)
+        else:
+            error = ErrorNode()
+            error.message = f"ERROR on line {ctx.CLASS().symbol.line}: Class {name} is already defined"
+            self.errors.append(error)
         feature = []
         scope = { 'class_name': name, 'method_name': None }
         self.active_scope = scope
@@ -256,10 +262,7 @@ class YaplVisitorCustom(yaplVisitor):
             f = self.visit(ctx.feature(i))
             if isinstance(f, MethodNode):
                 # * add methods to table in class
-                for c in self.types:
-                    if c.name == name and c.type == 'class':
-                        c.define_method(f.name, f.return_type, f.params)
-                        break
+                self.types[name].define_method(f.name, f.return_type, f.params)
             feature.append(f)
             self._addSimbolToTable(scope, f)
         nodo = ClassNode(name, parent, feature)
@@ -272,16 +275,14 @@ class YaplVisitorCustom(yaplVisitor):
             nodo.type = 'ERROR'
         # * add methods from parent to table
         if parent:
-            if parent_class := [
-                t for t in self.types if t.name == parent and t.type == 'class'
-            ]:
-                parent_class = parent_class[0]
-                for m in parent_class.methods:
-                    for c in self.types:
-                        if c.name == name and c.type == 'class':
-                            c.define_method(m, parent_class.methods[m].return_type, parent_class.methods[m].params)
-                            break
-                    # self.types[-1].define_method(m, parent_class.methods[m].return_type, parent_class.methods[m].params)
+            if parent not in self.types:
+                error = ErrorNode()
+                error.message = f"ERROR on line {ctx.CLASS().symbol.line}: Cannot inherites from {parent} since is not defined"
+                self.errors.append(error)
+                nodo.type = 'ERROR'
+            else:
+                for method in self.types[parent].methods:
+                    self.types[name].define_method(method, self.types[parent].methods[method].return_type, self.types[parent].methods[method].params)
         # TODO falta el type
         return nodo
 
@@ -302,33 +303,38 @@ class YaplVisitorCustom(yaplVisitor):
     def show_classes_table(self):
         headers = ['Name' , 'Parent', 'Attributes', 'Methods']
         table = [
-            [t.name, t.inheritance, t.get_attributes_names(), t.get_methods_names()]
+            [
+                t,
+                self.types[t].inheritance,
+                self.types[t].get_attributes_names(),
+                self.types[t].get_methods_names(),
+            ]
             for t in self.types
-            if t.type == 'class'
+            if self.types[t].type == 'class'
         ]
         print("\n========== Classes Table ==========\n")
         print(tabulate(table, headers, tablefmt="fancy_grid"))
     
     def show_variables_table(self):
-        headers = ['Name', 'Type', 'Scope', 'Value']
-        table = []
-        for t in self.types:
-            if t.type == 'var':
-                scope = t.scope['class_name'] if t.scope['method_name'] is None else f'{t.scope["class_name"]} => {t.scope["method_name"]}'
-                table.append([t.name, t.inheritance, scope, t.value])
+        # headers = ['Name', 'Type', 'Scope', 'Value']
+        # table = []
+        # for t in self.types:
+        #     if t.type == 'var':
+        #         scope = t.scope['class_name'] if t.scope['method_name'] is None else f'{t.scope["class_name"]} => {t.scope["method_name"]}'
+        #         table.append([t.name, t.inheritance, scope, t.value])
         print("\n========== Variables Table ==========\n")
-        print(tabulate(table, headers, tablefmt="fancy_grid"))
+        # print(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def check_global_semantics(self):
         # * CHECK if main class is defined
-        if not self._is_defined('Main', None):
+        if 'Main' not in self.types:
             self._add_error(
                 "ERROR: Main class is not defined"
             )
         # * CHECK if main method is defined
-        main_class = [t for t in self.types if t.name == 'Main' and t.type == 'class']
-        if main_class:
-            main_class = main_class[0]
+        main_class = None
+        if 'Main' in self.types:
+            main_class = self.types['Main']
         if not main_class or not main_class.getMethod('main'):
             self._add_error(
                 "ERROR: Main method is not defined"
@@ -354,17 +360,18 @@ class YaplVisitorCustom(yaplVisitor):
         self.errors.append(error)
 
     def _is_defined(self, name: str, scope: ScopeType) -> bool:
-        return any(t.name == name and t.scope == scope for t in self.types)
+        return scope['class_name'] in self.types and self.types[scope['class_name']].get_attribute(name) is not None
     
-    def _addSimbolToTable(self, scope: ScopeType, node: Node):
+    def _addSimbolToTable(self, scope: ScopeType, node: Node) -> str or None:
         # print(type (node))
         if isinstance(node, AttrNode):
             print('attr')
-            self.types.append(Klass(node.idx, scope, 'var', node.type, node.value.token, node))
+            self.types[scope['class_name']].define_attribute(node.idx, node.type)
         elif isinstance(node, MethodNode):
             print('method')
             for s in node.body.statements:
-                self._addSimbolToTable(scope, s)
+                new_scope = { 'class_name': scope['class_name'], 'method_name': node.name }
+                self._addSimbolToTable(new_scope, s)
         elif isinstance(node, AssignNode):
             print('assign')
             # * CHECK if variable is defined
@@ -372,17 +379,17 @@ class YaplVisitorCustom(yaplVisitor):
                 error = ErrorNode()
                 error.message = f"ERROR on line {node.line}: Variable {node.idx} is not defined"
                 self.errors.append(error)
+                return 'ERROR'
             else:
                 # assign the value in the simbols table
-                for t in self.types:
-                    if t.name == node.idx and t.scope == scope:
-                        # * CHECK if expression is same type
-                        if t.inheritance != node.value.type:
-                            error = ErrorNode()
-                            error.message = f"ERROR on line {node.line}:Cannot assign {node.value.type} to {t.inheritance}"
-                            self.errors.append(error)
-                        t.value = node.value.token
-                        break
+                # * CHECK if expression is same type
+                if self.types[scope['class_name']].get_attribute(node.idx).type != node.value.type:
+                    error = ErrorNode()
+                    error.message = f"ERROR on line {node.line}:Cannot assign {node.value.type} to {self.types[scope['class_name']].get_attribute(node.idx).type}"
+                    self.errors.append(error)
+                    return 'ERROR'
+                self.types[scope['class_name']].get_attribute(node.idx).value = node.value.token
+        return None
 
     def _check_for_use_id(self, node: Node) -> str or None:
         error = ErrorNode()
@@ -392,10 +399,8 @@ class YaplVisitorCustom(yaplVisitor):
                 self.errors.append(error)
                 return 'ERROR'
             else:
-                for t in self.types:
-                    if t.name == node.token and t.scope == self.active_scope:
-                        node.type = t.inheritance
-                        return None
+                var = self.types[self.active_scope['class_name']].get_attribute(node.token)
+                node.type = var.type
         return None
     
     def _arithmeticErros(self, left, right, operator) -> str or None:

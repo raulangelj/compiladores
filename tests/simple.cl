@@ -22,7 +22,7 @@ class Main inherits IO {
   main() : SELF_TYPE {
     {
         a <- 1 + a;
-        --a <- "d";
+        -- a <- "d";
         d <- "ho";
         --z <- 1;
         n <- not n;
@@ -40,9 +40,10 @@ class Main inherits IO {
     }
   };
 
-  prueba(n: Int) : Int {
+  suma(n: Int) : Int {
     {
       pruebavar <- 1;
+      10;
     }
   };
 };
