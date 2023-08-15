@@ -43,7 +43,7 @@ python main.py ./tests/<file_to_test>.cl
   - [x] La clase Main debe de tener un metodo main sin parametros
   - [ ] La ejecucion inicia evaluando (new Main).main()
 
-- [ ] BASICS Types
+- [x] BASICS Types
   - [x] Int, String, Bool
   - [x] Se puede crear tipos de datos apartir de clases
   - [x] Las clases de tipos basicos no pueden ser padres de otras clases
