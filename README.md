@@ -49,7 +49,7 @@ python main.py ./tests/<file_to_test>.cl
   - [x] Las clases de tipos basicos no pueden ser padres de otras clases
 
 - [ ] Scope
-  - [ ] Los atributos deben de ser definidos antes de su uso
+  - [x] Los atributos deben de ser definidos antes de su uso
   - [ ] Un metodo puede ser llamado de forma recursiva - ! COMO VALIDARLO
   - [ ] Ambito global y local, las variables let son locales
   - [ ] Todos los atributos y metodos de las clases son publicos

@@ -274,8 +274,6 @@ class YaplVisitorCustom(yaplVisitor):
             # * Check if var is defined
             valid = self._check_for_use_id(params[i])
             if valid == 'ERROR':
-                error = ErrorNode()
-                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Var {params[i].token} is not defined"
                 nodo.type = 'ERROR'
                 return nodo
             # * check if params are the same type as the method
@@ -474,6 +472,11 @@ class YaplVisitorCustom(yaplVisitor):
                 return 'ERROR'
             else:
                 # assign the value in the simbols table
+                # * Check asign is adding a ID
+                if node.value.type == 'Id':
+                    valid = self._check_for_use_id(node.value)
+                    if valid == 'ERROR':
+                        return 'ERROR'
                 # * CHECK if expression is same type
                 if self.types[scope['class_name']].get_attribute(node.idx).type != node.value.type:
                     error = ErrorNode()
