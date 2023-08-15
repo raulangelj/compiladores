@@ -80,7 +80,7 @@ python main.py ./tests/<file_to_test>.cl
   - [ ] Los argumentos que son de tipo basicio se pasan por valor - int, string, bool?
   - [ ] Los argumetnos que son de tipos derivados se pasan po referencia - objetos?
   - [ ] Los argumentos del metodo son variables locales
-  - [ ] Los argumentos se evaluan de izquierda a derecha - ? como lo pruebo
+  - [x] Los argumentos se evaluan de izquierda a derecha
   - [x] El tipo de retorno del metodo debe concidir con tipo de retorno
   - [x] Si se llama a un metodo en `<id>` <- `<exp>` el return se asiganra al `<id>`
 
