@@ -89,9 +89,9 @@ python main.py ./tests/<file_to_test>.cl
   - [x] El tipo de dato del condicional if es el tipo de dato del bloque que sea un supertipo de ambas ramas del condicional
   - [x] El tipo de dato de while es un Objeto
 
-- [ ] Expresiones
+- [x] Expresiones
   - [x] Los aritmeticos se aplican a variables tipo int y el resultado es int
-  - [ ] Los comparativos se aplica a datos que sean de la misma clase o que sean objetos que hereden de la misma clase. El resultado es bool
+  - [x] Los comparativos se aplica a datos que sean de la misma clase o que sean objetos que hereden de la misma clase. El resultado es bool
   - [x] La operacion ~ aplicado a tipo int devuelve un tipo int
   - [x] La operacion not en un dato bool devuelve un tipo bool
 

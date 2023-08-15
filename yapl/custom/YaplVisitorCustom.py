@@ -483,11 +483,13 @@ class YaplVisitorCustom(yaplVisitor):
         valid_right = self._check_for_use_id(right)
         if valid_left == 'ERROR' or valid_right == 'ERROR':
             return 'ERROR'
-        if left.type != right.type:
-            error.get_error(left, right, operator)
-            self.errors.append(error)
-            return 'ERROR'
-        return None
+        parent_left = self.types[left.type].inheritance
+        parent_right = self.types[right.type].inheritance
+        if left.type == right.type or parent_left == parent_right or parent_right == left.type or parent_left == right.type:
+            return None
+        error.get_error(left, right, operator)
+        self.errors.append(error)
+        return 'ERROR'
     
     def _getError(self, left, right, operator, line) -> str or None:
         match operator:
