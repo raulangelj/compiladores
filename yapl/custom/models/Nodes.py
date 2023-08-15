@@ -155,3 +155,8 @@ class WhileNode(Node):
     def __init__(self, condition, body):
         self.condition = condition
         self.expression = body
+
+class ParamNode(Node):
+    def __init__(self, idx, _type):
+        self.idx = idx
+        self.type = _type

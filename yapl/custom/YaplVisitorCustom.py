@@ -55,11 +55,11 @@ class YaplVisitorCustom(yaplVisitor):
         valid = self._getError(left, right, '+')
         nodo = PlusNode(left, right)
         nodo.line = ctx.PLUS().symbol.line
-        nodo.token = '+'
+        nodo.token = f'{ctx.expr(0).getText()}+{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         if valid == 'ERROR':
             nodo.type = 'ERROR'
-            return nodo            
+            return nodo
         return nodo
     
     def visitMinus(self, ctx:yaplParser.MinusContext):
@@ -68,7 +68,7 @@ class YaplVisitorCustom(yaplVisitor):
         valid = self._getError(left, right, '-')
         nodo = MinusNode(left, right)
         nodo.line = ctx.MINUS().symbol.line
-        nodo.token = '-'
+        nodo.token = f'{ctx.expr(0).getText()}-{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         if valid == 'ERROR':
             nodo.type = 'ERROR'
@@ -81,7 +81,7 @@ class YaplVisitorCustom(yaplVisitor):
         valid = self._getError(left, right, '*')
         node = MultNode(left, right)
         node.line = ctx.MULT().symbol.line
-        node.token = '*'
+        node.token = f'{ctx.expr(0).getText()}*{ctx.expr(1).getText()}'
         node.type = 'Int'
         if valid == 'ERROR':
             node.type = 'ERROR'
@@ -94,7 +94,7 @@ class YaplVisitorCustom(yaplVisitor):
         valid = self._getError(left, right, '/')
         nodo = DivNode(left, right)
         nodo.line = ctx.DIV().symbol.line
-        nodo.token = '/'
+        nodo.token = f'{ctx.expr(0).getText()}/{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         if valid == 'ERROR':
             nodo.type = 'ERROR'
@@ -117,7 +117,7 @@ class YaplVisitorCustom(yaplVisitor):
         valid = self._getError(left, right, '<')
         nodo = LessThanNode(left, right)
         nodo.line = ctx.LESS_THAN().symbol.line
-        nodo.token =  ctx.LESS_THAN().getText()
+        nodo.token =  f'{ctx.expr(0).getText()}<{ctx.expr(1).getText()}'
         nodo.type = 'Bool'
         if valid == 'ERROR':
             nodo.type = 'ERROR'
@@ -130,7 +130,7 @@ class YaplVisitorCustom(yaplVisitor):
         valid = self._getError(left, right, '<=')
         nodo = LessEqualNode(left, right)
         nodo.line = ctx.LESS_EQUAL().symbol.line
-        nodo.token = ctx.LESS_EQUAL().getText()
+        nodo.token = f'{ctx.expr(0).getText()}<={ctx.expr(1).getText()}'
         nodo.type = 'Bool'
         if valid == 'ERROR':
             nodo.type = 'ERROR'
@@ -143,7 +143,7 @@ class YaplVisitorCustom(yaplVisitor):
         valid = self._getError(left, right, '=')
         nodo = EqualNode(left, right)
         nodo.line = ctx.EQUAL().symbol.line
-        nodo.token = ctx.EQUAL().getText()
+        nodo.token = f'{ctx.expr(0).getText()}={ctx.expr(1).getText()}'
         nodo.type = 'Bool'
         if valid == 'ERROR':
             nodo.type = 'ERROR'
@@ -231,12 +231,17 @@ class YaplVisitorCustom(yaplVisitor):
             nodo.type = 'ERROR'
         return nodo
     
+    def visitFormal(self, ctx:yaplParser.FormalContext):
+        return self.visitChildren(ctx)
+    
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
         name = ctx.ID_VAR().getText()
         params = []
         for i in range(len(ctx.formal())):
-            idx = ctx.formal(i).ID_VAR().getText()
-            typex = ctx.formal(i).TYPE_IDENTIFIER().getText()
+            param = ctx.formal(i)
+            idx = param.ID_VAR().getText()
+            typex = param.TYPE_IDENTIFIER().getText()
+            # todo check for the scope
             params.append(Attribute(idx, typex))
         typex = ctx.TYPE_IDENTIFIER().getText()
         body = self.visit(ctx.expr())
@@ -298,6 +303,8 @@ class YaplVisitorCustom(yaplVisitor):
                 error = ErrorNode()
                 error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Cannot assign {expression.type} to {typex}"
                 self.errors.append(error)
+            else:
+                self.types[self.active_scope['class_name']].define_attribute(idx, typex, nodo.value.token)
         return nodo
     
     def show_classes_table(self):
@@ -316,14 +323,15 @@ class YaplVisitorCustom(yaplVisitor):
         print(tabulate(table, headers, tablefmt="fancy_grid"))
     
     def show_variables_table(self):
-        # headers = ['Name', 'Type', 'Scope', 'Value']
-        # table = []
-        # for t in self.types:
-        #     if t.type == 'var':
-        #         scope = t.scope['class_name'] if t.scope['method_name'] is None else f'{t.scope["class_name"]} => {t.scope["method_name"]}'
-        #         table.append([t.name, t.inheritance, scope, t.value])
-        print("\n========== Variables Table ==========\n")
-        # print(tabulate(table, headers, tablefmt="fancy_grid"))
+        headers = ['Name', 'Type', 'Scope', 'Value']
+        for c in self.types:
+            print(f"\n========== {c} Variables Table ==========\n")
+            table = []
+            for t in self.types[c].attributes:
+                var = self.types[c].get_attribute(t)
+                scope = f'Class: {t}'
+                table.append([t, var.type, scope, var.value])
+            print(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def check_global_semantics(self):
         # * CHECK if main class is defined
@@ -366,7 +374,7 @@ class YaplVisitorCustom(yaplVisitor):
         # print(type (node))
         if isinstance(node, AttrNode):
             print('attr')
-            self.types[scope['class_name']].define_attribute(node.idx, node.type)
+            self.types[scope['class_name']].define_attribute(node.idx, node.type, node.value.token)
         elif isinstance(node, MethodNode):
             print('method')
             for s in node.body.statements:

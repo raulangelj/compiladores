@@ -2,9 +2,10 @@ from typing import List, Literal, TypedDict
 
 # every class is a type
 class Attribute():
-    def __init__(self, name: str, _type: str):
+    def __init__(self, name: str, _type: str, value: str = None):
         self.name = name
         self.type = _type
+        self.value = value
 
     def __eq__(self, __value: object) -> bool:
         return self.name == __value.name and self.type == __value.type
@@ -42,8 +43,8 @@ class Klass():
     def getMethod(self, name: str) -> Method:
         return self.methods[name] if name in self.methods else None
         
-    def define_attribute(self, name: str, _type: str):
-        self.attributes[name] = Attribute(name, _type)
+    def define_attribute(self, name: str, _type: str, value):
+        self.attributes[name] = Attribute(name, _type, value)
 
     def define_method(self, name: str, return_type: str, params: List[Attribute]):
         # params_list = [Attribute(param[0], param[1]) for param in params]

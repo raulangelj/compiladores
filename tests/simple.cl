@@ -4,9 +4,27 @@ class A {
   d : Bool;
   e : String;
   c : String <- "holaaaaa";
+
+  hole() : Int {
+    {
+      a <- 1;
+    }
+  };
+
   main() : SELF_TYPE {
     {
         a <- 1;
+    }
+  };
+};
+
+class B inherits A {
+  a: Int <- 2;
+
+  beta() : Int {
+    {
+      a <- 1;
+      1;
     }
   };
 };
@@ -19,9 +37,17 @@ class Main inherits IO {
   n: Bool <- true;
   pruebavar : Int;
   e: Int <- 2;
+  
+  suma(n: Int) : Int {
+    {
+      pruebavar <- 1;
+      10;
+    }
+  };
+
   main() : SELF_TYPE {
     {
-        a <- 1 + a;
+        a <- 1 + a * 3;
         -- a <- "d";
         d <- "ho";
         --z <- 1;
@@ -37,13 +63,8 @@ class Main inherits IO {
         while n loop {
           a <- 1;
         } pool;
-    }
-  };
 
-  suma(n: Int) : Int {
-    {
-      pruebavar <- 1;
-      10;
+        --e <- suma(1);
     }
   };
 };
