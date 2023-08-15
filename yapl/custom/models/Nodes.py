@@ -160,3 +160,8 @@ class ParamNode(Node):
     def __init__(self, idx, _type):
         self.idx = idx
         self.type = _type
+
+class NewNode(Node):
+    def __init__(self, typex):
+        self.type = typex
+        self.token = f'NEW {typex}'

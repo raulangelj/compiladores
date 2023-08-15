@@ -184,7 +184,6 @@ class YaplVisitorCustom(yaplVisitor):
         nodo = BlockNode(body_list)
         nodo.line = ctx.LBRACE().symbol.line
         nodo.type = self._get_super_type(body_list)
-        # TODO falta el type
         return nodo
     
     def _get_super_type(self, features: Node):
@@ -306,6 +305,17 @@ class YaplVisitorCustom(yaplVisitor):
                     self.types[name].define_method(method, self.types[parent].methods[method].return_type, self.types[parent].methods[method].params)
         # TODO falta el type
         return nodo
+    
+    def visitNew(self, ctx:yaplParser.NewContext):
+        typex = ctx.TYPE_IDENTIFIER().getText()
+        nodo = NewNode(typex)
+        nodo.line = ctx.NEW().symbol.line
+        if typex not in self.types:
+            error = ErrorNode()
+            error.message = f"ERROR on line {ctx.NEW().symbol.line}: Class {typex} is not defined"
+            self.errors.append(error)
+            nodo.type = 'ERROR'
+        return nodo
 
     def visitAttr(self, ctx:yaplParser.AttrContext):
         idx = ctx.ID_VAR().getText()
@@ -343,9 +353,9 @@ class YaplVisitorCustom(yaplVisitor):
         for c in self.types:
             print(f"\n========== {c} Variables Table ==========\n")
             table = []
+            scope = f'Class: {c}'
             for t in self.types[c].attributes:
                 var = self.types[c].get_attribute(t)
-                scope = f'Class: {t}'
                 table.append([t, var.type, scope, var.value])
             print(tabulate(table, headers, tablefmt="fancy_grid"))
 
@@ -389,7 +399,8 @@ class YaplVisitorCustom(yaplVisitor):
         # print(type (node))
         if isinstance(node, AttrNode):
             print('attr')
-            self.types[scope['class_name']].define_attribute(node.idx, node.type, node.value.token)
+            value = node.value.token if node.value else None
+            self.types[scope['class_name']].define_attribute(node.idx, node.type, value)
         elif isinstance(node, MethodNode):
             print('method')
             for s in node.body.statements:
@@ -417,7 +428,8 @@ class YaplVisitorCustom(yaplVisitor):
                     error.message = f"ERROR on line {node.line}:Cannot assign {node.value.type} to {self.types[scope['class_name']].get_attribute(node.idx).type}"
                     self.errors.append(error)
                     return 'ERROR'
-                self.types[scope['class_name']].get_attribute(node.idx).value = node.value.token
+                value = node.value.token if node.value else None
+                self.types[scope['class_name']].get_attribute(node.idx).value = value
         return None
 
     def _check_for_use_id(self, node: Node) -> str or None:

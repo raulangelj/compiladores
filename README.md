@@ -45,7 +45,7 @@ python main.py ./tests/<file_to_test>.cl
 
 - [ ] BASICS Types
   - [x] Int, String, Bool
-  - [ ] Se puede crear tipos de datos apartir de clases
+  - [x] Se puede crear tipos de datos apartir de clases
   - [x] Las clases de tipos basicos no pueden ser padres de otras clases
 
 - [ ] Scope
@@ -91,7 +91,7 @@ python main.py ./tests/<file_to_test>.cl
 
 - [ ] Expresiones
   - [x] Los aritmeticos se aplican a variables tipo int y el resultado es int
-  - [ ] Los comparativos se aplica a datos que sean de la misma clase o que sean objetos que hereden de la misma clase. El resultado es bool - !ALGUNAS DUDAS
+  - [ ] Los comparativos se aplica a datos que sean de la misma clase o que sean objetos que hereden de la misma clase. El resultado es bool
   - [x] La operacion ~ aplicado a tipo int devuelve un tipo int
   - [x] La operacion not en un dato bool devuelve un tipo bool
 

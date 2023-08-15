@@ -2,7 +2,7 @@ from typing import List, Literal, TypedDict
 
 # every class is a type
 class Attribute():
-    def __init__(self, name: str, _type: str, value: str = None):
+    def __init__(self, name: str, _type: str, value = None):
         self.name = name
         self.type = _type
         self.value = value

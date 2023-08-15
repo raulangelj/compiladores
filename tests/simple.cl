@@ -1,13 +1,15 @@
-class Main inherits IO {
+class A {
   a: Bool <- false;
   b: Int <- 1;
+};
+
+class Main inherits IO {
+  aClass: A <- new A;
+  a : Int <- 1;
 
   main() : SELF_TYPE {
     {
-        b <- a + true;
-        b <- a - true;
-        b <- a * true;
-        b <- a / true;
+      aClass <- new A;
     }
   };
 };
