@@ -204,9 +204,17 @@ class YaplVisitorCustom(yaplVisitor):
             nodo.type = 'ERROR'
             return nodo
         # * Check if condition is bool
-        if condition.type != 'Bool':
+        if condition.type == 'Bool':
+            pass
+        elif condition.type == 'Int' and condition.token in ['0', '1']:
+            condition.type = 'Bool'
+            condition.value = BooleanNode('true' if condition.token == '1' else 'false')
+        elif condition.type == 'Int' and hasattr(condition, 'value') and condition.value.token in ['0', '1']:
+            condition.type = 'Bool'
+            condition.value = BooleanNode('true' if condition.value.token == '1' else 'false')
+        else:
             error = ErrorNode()
-            error.message = f"ERROR on line {ctx.WHILE().symbol.line}: Condition must be Bool"
+            error.message = f"ERROR on line {nodo.line}: Condition must be Bool"
             self.errors.append(error)
             nodo.type = 'ERROR'
         return nodo
@@ -217,14 +225,22 @@ class YaplVisitorCustom(yaplVisitor):
         else_body = self.visit(ctx.expr(2))
         nodo = IfNode(condition, then_body, else_body)
         nodo.line = ctx.IF().symbol.line
-        nodo.typ = self._get_super_type([then_body, else_body])
+        nodo.type = self._get_super_type([then_body, else_body])
         # * if contidion is an id check if it is defined
         valid_condition = self._check_for_use_id(condition)
         if valid_condition == 'ERROR':
             nodo.type = 'ERROR'
             return nodo
         # * Check if condition is bool
-        if condition.type != 'Bool':
+        if condition.type == 'Bool':
+            pass
+        elif condition.type == 'Int' and condition.token in ['0', '1']:
+            condition.type = 'Bool'
+            condition.value = BooleanNode('true' if condition.token == '1' else 'false')
+        elif condition.type == 'Int' and hasattr(condition, 'value') and condition.value.token in ['0', '1']:
+            condition.type = 'Bool'
+            condition.value = BooleanNode('true' if condition.value.token == '1' else 'false')
+        else:
             error = ErrorNode()
             error.message = f"ERROR on line {ctx.IF().symbol.line}: Condition must be Bool"
             self.errors.append(error)
@@ -361,7 +377,6 @@ class YaplVisitorCustom(yaplVisitor):
             )
             return
 
-    # TODO Rename this here and in `check_global_semantics`
     def _add_error(self, message: str):
         error = ErrorNode()
         error.message = message
@@ -414,7 +429,19 @@ class YaplVisitorCustom(yaplVisitor):
                 return 'ERROR'
             else:
                 var = self.types[self.active_scope['class_name']].get_attribute(node.token)
+                if var.value is None:
+                    error.message = f"ERROR on line {node.line}: Variable {node.token} is not initialized"
+                    self.errors.append(error)
+                    return 'ERROR'
                 node.type = var.type
+                if node.type == 'SELF_TYPE': # TODO REVICSAR!
+                    node.type = self.active_scope['class_name']
+                elif node.type == 'Int':
+                    node.value = IntegerNode(var.value)
+                elif node.type == 'String':
+                    node.value = StringNode(var.value)
+                elif node.type == 'Bool':
+                    node.value = BooleanNode(var.value)
         return None
     
     def _arithmeticErros(self, left, right, operator) -> str or None:

@@ -64,8 +64,8 @@ python main.py ./tests/<file_to_test>.cl
   - [x] Bool -> false
 
 - [ ] Casteo
-  - [ ] Casteo implicito de Bool a Int (False es 0 y True es 1) - ! DONDE SE USA ESTE?
-  - [ ] Casteo implicito de Int a Bool (0 es False y 1 es True)
+  - [ ] Casteo implicito de Bool a Int (False es 0 y True es 1)
+  - [x] Casteo implicito de Int a Bool (0 es False y 1 es True)
   - [ ] NO se puede casteo explicito
 
 - [ ]  Asignacion
