@@ -82,7 +82,7 @@ python main.py ./tests/<file_to_test>.cl
   - [ ] Los argumentos del metodo son variables locales
   - [ ] Los argumentos se evaluan de izquierda a derecha - ? como lo pruebo
   - [x] El tipo de retorno del metodo debe concidir con tipo de retorno
-  - [ ] Si se llama a un metodo en `<id>` <- `<exp>` el return se asiganra al `<id>`
+  - [x] Si se llama a un metodo en `<id>` <- `<exp>` el return se asiganra al `<id>`
 
 - [x] Estructuras de control
   - [x] El tipo estatico de un if o while debe de ser bool

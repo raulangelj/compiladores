@@ -165,3 +165,9 @@ class NewNode(Node):
     def __init__(self, typex):
         self.type = typex
         self.token = f'NEW {typex}'
+
+class MethodCallNode(Node):
+    def __init__(self, obj, method, params):
+        self.obj = obj
+        self.method = method
+        self.params = params
