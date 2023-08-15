@@ -5,8 +5,8 @@ class ErrorNode():
         self.type = 'Error'
         self.message = None
     
-    def get_error(self, left, right, operator):
-        self.message = f"Unsupported operation {operator}: in between {left.type} and {right.type}"
+    def get_error(self, left, right, operator, line = ""):
+        self.message = f"Error on line {line}: unsupported operation {operator}: in between {left.type} and {right.type}"
 
 class Node():
     def __init__(self):

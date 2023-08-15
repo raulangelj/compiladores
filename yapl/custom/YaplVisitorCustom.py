@@ -52,9 +52,9 @@ class YaplVisitorCustom(yaplVisitor):
     def visitPlus(self, ctx:yaplParser.PlusContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        valid = self._getError(left, right, '+')
         nodo = PlusNode(left, right)
         nodo.line = ctx.PLUS().symbol.line
+        valid = self._getError(left, right, '+', nodo.line)
         nodo.token = f'{ctx.expr(0).getText()}+{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         if valid == 'ERROR':
@@ -65,9 +65,9 @@ class YaplVisitorCustom(yaplVisitor):
     def visitMinus(self, ctx:yaplParser.MinusContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        valid = self._getError(left, right, '-')
         nodo = MinusNode(left, right)
         nodo.line = ctx.MINUS().symbol.line
+        valid = self._getError(left, right, '-', nodo.line)
         nodo.token = f'{ctx.expr(0).getText()}-{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         if valid == 'ERROR':
@@ -78,9 +78,9 @@ class YaplVisitorCustom(yaplVisitor):
     def visitMult(self, ctx:yaplParser.MultContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        valid = self._getError(left, right, '*')
         node = MultNode(left, right)
         node.line = ctx.MULT().symbol.line
+        valid = self._getError(left, right, '*', node.line)
         node.token = f'{ctx.expr(0).getText()}*{ctx.expr(1).getText()}'
         node.type = 'Int'
         if valid == 'ERROR':
@@ -91,9 +91,9 @@ class YaplVisitorCustom(yaplVisitor):
     def visitDiv(self, ctx: yaplParser.DivContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        valid = self._getError(left, right, '/')
         nodo = DivNode(left, right)
         nodo.line = ctx.DIV().symbol.line
+        valid = self._getError(left, right, '/', nodo.line)
         nodo.token = f'{ctx.expr(0).getText()}/{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         if valid == 'ERROR':
@@ -114,9 +114,9 @@ class YaplVisitorCustom(yaplVisitor):
     def visitLess(self, ctx: yaplParser.LessContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        valid = self._getError(left, right, '<')
         nodo = LessThanNode(left, right)
         nodo.line = ctx.LESS_THAN().symbol.line
+        valid = self._getError(left, right, '<', nodo.line)
         nodo.token =  f'{ctx.expr(0).getText()}<{ctx.expr(1).getText()}'
         nodo.type = 'Bool'
         if valid == 'ERROR':
@@ -127,9 +127,9 @@ class YaplVisitorCustom(yaplVisitor):
     def visitLess_equal(self, ctx: yaplParser.Less_equalContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        valid = self._getError(left, right, '<=')
         nodo = LessEqualNode(left, right)
         nodo.line = ctx.LESS_EQUAL().symbol.line
+        valid = self._getError(left, right, '<=', nodo.line)
         nodo.token = f'{ctx.expr(0).getText()}<={ctx.expr(1).getText()}'
         nodo.type = 'Bool'
         if valid == 'ERROR':
@@ -140,9 +140,9 @@ class YaplVisitorCustom(yaplVisitor):
     def visitEqual(self, ctx: yaplParser.EqualContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        valid = self._getError(left, right, '=')
         nodo = EqualNode(left, right)
         nodo.line = ctx.EQUAL().symbol.line
+        valid = self._getError(left, right, '=', nodo.line)
         nodo.token = f'{ctx.expr(0).getText()}={ctx.expr(1).getText()}'
         nodo.type = 'Bool'
         if valid == 'ERROR':
@@ -152,18 +152,18 @@ class YaplVisitorCustom(yaplVisitor):
     
     def visitNot(self, ctx: yaplParser.NotContext):
         node = self.visit(ctx.expr())
-        self._getError(node, None, 'Not')
         nodo = NotNode(node)
         nodo.type = node.type
         nodo.line = ctx.NOT().symbol.line
+        self._getError(node, None, 'Not', nodo.line)
         return nodo
     
     def visitNegative(self, ctx: yaplParser.NegativeContext):
         node = self.visit(ctx.expr())
-        self._getError(node, None, 'Negative')
         nodo = NegativeNode(node)
         nodo.type = node.type
         nodo.line = ctx.NEGATIVE().symbol.line
+        self._getError(node, None, 'Negative', nodo.line)
         return nodo
     
     def visitId(self, ctx:yaplParser.IdContext):
@@ -444,7 +444,7 @@ class YaplVisitorCustom(yaplVisitor):
                     node.value = BooleanNode(var.value)
         return None
     
-    def _arithmeticErros(self, left, right, operator) -> str or None:
+    def _arithmeticErros(self, left, right, operator, line) -> str or None:
         error = ErrorNode()
         # show error if left or right is not Int type but if is Id let it pass
         # if one is ID check in the simbols to see if it is defined
@@ -452,8 +452,14 @@ class YaplVisitorCustom(yaplVisitor):
         valid_right = self._check_for_use_id(right)
         if valid_left == 'ERROR' or valid_right == 'ERROR':
             return 'ERROR'
+        if left.type == 'Bool':
+            left.type = 'Int'
+            left.value = IntegerNode('1' if left.token == 'true' else '0')
+        if right.type == 'Bool':
+            right.type = 'Int'
+            right.value = IntegerNode('1' if right.token == 'true' else '0')
         if left.type not in ['Int'] or right.type not in ['Int']:
-            error.get_error(left, right, operator)
+            error.get_error(left, right, operator, line)
             self.errors.append(error)
             return 'ERROR'
         return None
@@ -471,16 +477,16 @@ class YaplVisitorCustom(yaplVisitor):
             return 'ERROR'
         return None
     
-    def _getError(self, left, right, operator) -> str or None:
+    def _getError(self, left, right, operator, line) -> str or None:
         match operator:
             case '+':
-                return self._arithmeticErros(left, right, operator)
+                return self._arithmeticErros(left, right, operator, line)
             case '-':
-                return self._arithmeticErros(left, right, operator)
+                return self._arithmeticErros(left, right, operator, line)
             case '*':
-                return self._arithmeticErros(left, right, operator)
+                return self._arithmeticErros(left, right, operator, line)
             case '/':
-                return self._arithmeticErros(left, right, operator)
+                return self._arithmeticErros(left, right, operator, line)
             case '<':
                 return self._comparisonErrors(left, right, operator)
             case '<=':
@@ -494,7 +500,7 @@ class YaplVisitorCustom(yaplVisitor):
                     if valid_left == 'ERROR':
                         return 'ERROR'
                 if left.type not in ['Bool']:
-                    return self._add_unsupported_errror(operator, left)
+                    return self._add_unsupported_errror(operator, left, line)
             case 'Negative':
                 # key '~'
                 if left.type == 'Id':
@@ -502,14 +508,13 @@ class YaplVisitorCustom(yaplVisitor):
                     if valid_left == 'ERROR':
                         return 'ERROR'
                 if left.type == 'String':
-                    return self._add_unsupported_errror(operator, left)
+                    return self._add_unsupported_errror(operator, left, line)
             case _:
                 return None
 
-    # TODO Rename this here and in `_getError`
-    def _add_unsupported_errror(self, operator, left) -> str:
+    def _add_unsupported_errror(self, operator, left, line) -> str:
         error = ErrorNode()
-        error.message = f"Unsupported operation {operator}: with {left.type}"
+        error.message = f"Error on line {line}: unsupported operation {operator}: with {left.type}"
         self.errors.append(error)
         return 'ERROR'
             

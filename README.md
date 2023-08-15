@@ -63,8 +63,8 @@ python main.py ./tests/<file_to_test>.cl
   - [x] String -> "" (cadena vacia)
   - [x] Bool -> false
 
-- [ ] Casteo
-  - [ ] Casteo implicito de Bool a Int (False es 0 y True es 1)
+- [x] Casteo
+  - [x] Casteo implicito de Bool a Int (False es 0 y True es 1)
   - [x] Casteo implicito de Int a Bool (0 es False y 1 es True)
   - [x] NO se puede casteo explicito
 
