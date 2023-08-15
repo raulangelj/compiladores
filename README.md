@@ -66,7 +66,7 @@ python main.py ./tests/<file_to_test>.cl
 - [ ] Casteo
   - [ ] Casteo implicito de Bool a Int (False es 0 y True es 1)
   - [x] Casteo implicito de Int a Bool (0 es False y 1 es True)
-  - [ ] NO se puede casteo explicito
+  - [x] NO se puede casteo explicito
 
 - [ ]  Asignacion
   - [x] `<id>` <- `<expr>`
