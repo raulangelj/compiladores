@@ -251,6 +251,10 @@ class YaplVisitorCustom(yaplVisitor):
         method = ctx.ID_VAR().getText()
         nodo = MethodCallNode('self', method, params)
         nodo.line = ctx.ID_VAR().symbol.line
+        method_return = self.types[self.active_scope['class_name']].getMethod(method).return_type
+        nodo.type = method_return
+        nodo.token = f'{method}({", ".join([p.token for p in params])})'
+        method_params = self.types[self.active_scope['class_name']].getMethod(method).params
         # * check if method is defined
         if self.active_scope['class_name'] not in self.types or not self.types[self.active_scope['class_name']].getMethod(method):
             error = ErrorNode()
@@ -258,7 +262,7 @@ class YaplVisitorCustom(yaplVisitor):
             self.errors.append(error)
             nodo.type = 'ERROR'
             return nodo
-        method_params = self.types[self.active_scope['class_name']].getMethod(method).params
+        
         # * Check if params count is the same as the method
         if len(params) != len(method_params):
             error = ErrorNode()
@@ -281,10 +285,6 @@ class YaplVisitorCustom(yaplVisitor):
                 self.errors.append(error)
                 nodo.type = 'ERROR'
                 return nodo
-        
-        method_return = self.types[self.active_scope['class_name']].getMethod(method).return_type
-        nodo.type = method_return
-        nodo.token = f'{method}({", ".join([p.token for p in params])})'
         return nodo
         
 
@@ -302,7 +302,13 @@ class YaplVisitorCustom(yaplVisitor):
         body = self.visit(ctx.expr())
         nodo = MethodNode(name, params, typex, body)
         nodo.line = ctx.ID_VAR().symbol.line
-        # TODO falta el type
+        nodo.type = typex
+        # * check if method is defined
+        if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].getMethod(name):
+            error = ErrorNode()
+            error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} is already defined"
+            self.errors.append(error)
+            nodo.type = 'ERROR'
         return nodo
     
     def visitClasss(self, ctx:yaplParser.ClasssContext):
@@ -363,6 +369,12 @@ class YaplVisitorCustom(yaplVisitor):
         expression = self.visit(ctx.expr()) if ctx.expr() is not None else None
         nodo = AttrNode(idx, typex, expression)
         nodo.line = ctx.ID_VAR().symbol.line
+        # * check if attribute is defined
+        if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].get_attribute(idx):
+            error = ErrorNode()
+            error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Attribute {idx} is already defined"
+            self.errors.append(error)
+            nodo.type = 'ERROR'
         if nodo.value:
             # * CHECK if expression is same type
             if typex != nodo.value.type:

@@ -1,3 +1,7 @@
+class A {
+  a : Int <- 1;
+};
+
 class Main inherits IO {
   a : Int <- 1;
   b : Int <- 2;
