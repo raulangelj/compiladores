@@ -55,8 +55,8 @@ python main.py ./tests/<file_to_test>.cl
   - [ ] Todos los atributos y metodos de las clases son publicos
   - [ ] Scope local tiene prioridad sobre global
   - [x] Ningun identificador puede ser definido mas de una vez
-  - [ ] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A. - ! NO ENTIENDO
-  - [ ] No se puede herencia multiple y herencia recursiva - ! NO ENTIENDO LA RECURSIVA
+  - [ ] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A
+  - [x] No se puede herencia multiple y herencia recursiva
 
 - [x] Default
   - [x] Int -> 0
@@ -77,9 +77,9 @@ python main.py ./tests/<file_to_test>.cl
   - [ ] Se pueden tener identificadores recurisivos [class1].[class2].[class3]...
 
 - [ ] Metodos y returns
-  - [ ] Los argumentos que son de tipo basicio se pasan por valor - int, string, bool?
+  - [x] Los argumentos que son de tipo basicio se pasan por valor
   - [ ] Los argumetnos que son de tipos derivados se pasan po referencia - objetos?
-  - [ ] Los argumentos del metodo son variables locales
+  - [x] Los argumentos del metodo son variables locales
   - [x] Los argumentos se evaluan de izquierda a derecha
   - [x] El tipo de retorno del metodo debe concidir con tipo de retorno
   - [x] Si se llama a un metodo en `<id>` <- `<exp>` el return se asiganra al `<id>`

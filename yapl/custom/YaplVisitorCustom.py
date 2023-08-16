@@ -25,16 +25,16 @@ class YaplVisitorCustom(yaplVisitor):
         self.types['object'].define_method('type_name', 'String', [])
         self.types['object'].define_method('copy', 'object', [])
         # io
-        self.types['IO'].define_method('out_string', 'SELF_TYPE', [['x', 'String']])
-        self.types['IO'].define_method('out_int', 'SELF_TYPE', [['x', 'Int']])
+        self.types['IO'].define_method('out_string', 'SELF_TYPE', [Attribute('x', 'String')])
+        self.types['IO'].define_method('out_int', 'SELF_TYPE', [Attribute('x', 'Int')])
         self.types['IO'].define_method('in_string', 'String', [])
         self.types['IO'].define_method('in_int', 'Int', [])
         # integer
         # does not have methods - default value is 0
         # String - default value is ''
         self.types['String'].define_method('length', 'Int', [])
-        self.types['String'].define_method('concat', 'String', [['s', 'String']])
-        self.types['String'].define_method('substr', 'String', [['i', 'Int'], ['l', 'Int']])
+        self.types['String'].define_method('concat', 'String', [Attribute('s', 'String')])
+        self.types['String'].define_method('substr', 'String', [Attribute('i', 'Int'), Attribute('l', 'Int')])
         # Bool - default value is false
         # does not have methods
 
@@ -283,21 +283,47 @@ class YaplVisitorCustom(yaplVisitor):
                 self.errors.append(error)
                 nodo.type = 'ERROR'
                 return nodo
+            # * Change the value of the param in local var
+            self.types[self.active_scope['class_name']].get_local(method, method_params[i].name).value = params[i].token
         return nodo
         
 
     
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
         name = ctx.ID_VAR().getText()
+        self.active_scope['method_name'] = name
         params = []
         for i in range(len(ctx.formal())):
             param = ctx.formal(i)
             idx = param.ID_VAR().getText()
             typex = param.TYPE_IDENTIFIER().getText()
-            # todo check for the scope
             params.append(Attribute(idx, typex))
+            # * Add to local variables table
+            self.types[self.active_scope['class_name']].define_local(name, idx, typex)
         typex = ctx.TYPE_IDENTIFIER().getText()
         body = self.visit(ctx.expr())
+        # * Validate signature if method is inherited
+        if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].inheritance:
+            parent = self.types[self.active_scope['class_name']].inheritance
+            if parent in self.types and self.types[parent].getMethod(name):
+                parent_method = self.types[parent].getMethod(name)
+                if parent_method.return_type != typex:
+                    error = ErrorNode()
+                    error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} must return {parent_method.return_type} as defined in parent"
+                    self.errors.append(error)
+                    typex = 'ERROR'
+                if len(parent_method.params) != len(params):
+                    error = ErrorNode()
+                    error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} must have {len(parent_method.params)} params as defined in parent"
+                    self.errors.append(error)
+                    typex = 'ERROR'
+                else:
+                    for i in range(len(params)):
+                        if params[i].type != parent_method.params[i].type:
+                            error = ErrorNode()
+                            error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} param {parent_method.params[i].name} must be {parent_method.params[i].type} as defined in parent"
+                            self.errors.append(error)
+                            typex = 'ERROR'
         nodo = MethodNode(name, params, typex, body)
         nodo.line = ctx.ID_VAR().symbol.line
         nodo.type = typex
@@ -403,10 +429,15 @@ class YaplVisitorCustom(yaplVisitor):
         for c in self.types:
             print(f"\n========== {c} Variables Table ==========\n")
             table = []
-            scope = f'Class: {c}'
+            # scope = f'Class: {c}'
             for t in self.types[c].attributes:
                 var = self.types[c].get_attribute(t)
-                table.append([t, var.type, scope, var.value])
+                table.append([t, var.type, 'GLOCAL', var.value])
+            # locals
+            for l in self.types[c].locals:
+                for t in self.types[c].locals[l]:
+                    var = self.types[c].get_local(l, t)
+                    table.append([t, var.type, f'LOCAL: {l}', var.value])
             print(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def check_global_semantics(self):
@@ -443,7 +474,12 @@ class YaplVisitorCustom(yaplVisitor):
         self.errors.append(error)
 
     def _is_defined(self, name: str, scope: ScopeType) -> bool:
-        return scope['class_name'] in self.types and self.types[scope['class_name']].get_attribute(name) is not None
+        isglobal_val = scope['class_name'] in self.types and self.types[scope['class_name']].get_attribute(name) is not None
+        islocal_var = False
+        if scope['method_name'] is not None:
+            classVar = self.types[scope['class_name']]
+            islocal_var = classVar.get_local(scope['method_name'], name) is not None
+        return isglobal_val or islocal_var
     
     def _addSimbolToTable(self, scope: ScopeType, node: Node) -> str or None:
         # print(type (node))
@@ -478,13 +514,20 @@ class YaplVisitorCustom(yaplVisitor):
                     if valid == 'ERROR':
                         return 'ERROR'
                 # * CHECK if expression is same type
-                if self.types[scope['class_name']].get_attribute(node.idx).type != node.value.type:
+                if self._get_variable(node.idx).type != node.value.type:
                     error = ErrorNode()
-                    error.message = f"ERROR on line {node.line}:Cannot assign {node.value.type} to {self.types[scope['class_name']].get_attribute(node.idx).type}"
+                    error.message = f"ERROR on line {node.line}:Cannot assign {node.value.type} to {self._get_variable(node.idx).type}"
                     self.errors.append(error)
                     return 'ERROR'
                 value = node.value.token if node.value else None
                 self.types[scope['class_name']].get_attribute(node.idx).value = value
+        return None
+    
+    def _get_variable(self, name: str) -> Attribute or None:
+        if self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], name):
+            return self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], name)
+        elif self.types[self.active_scope['class_name']].get_attribute(name):
+            return self.types[self.active_scope['class_name']].get_attribute(name)
         return None
 
     def _check_for_use_id(self, node: Node) -> str or None:
@@ -495,7 +538,7 @@ class YaplVisitorCustom(yaplVisitor):
                 self.errors.append(error)
                 return 'ERROR'
             else:
-                var = self.types[self.active_scope['class_name']].get_attribute(node.token)
+                var = self._get_variable(node.token)
                 if var.value is None:
                     error.message = f"ERROR on line {node.line}: Variable {node.token} is not initialized"
                     self.errors.append(error)
