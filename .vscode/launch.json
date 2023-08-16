@@ -12,7 +12,8 @@
       "console": "integratedTerminal",
       "justMyCode": true,
       "args": [
-        ".\\tests\\simple.cl"
+        ".\\tests\\cool.cl"
+        //".\\tests\\simple.cl"
       ]
     }
   ]

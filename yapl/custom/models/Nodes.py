@@ -11,6 +11,7 @@ class ErrorNode():
 class Node():
     def __init__(self):
         self.type = None
+        self.token = ''
         self.line = None
 
 class BiOperationNode(Node):
@@ -179,8 +180,16 @@ class LetNode(Node):
 
 
 class DispatchNode(Node): # for method dispatch or methodCall
-    def __init__(self, typex, method, args, expr):
-        self.type = typex
+    def __init__(self, parent, method, args, expr, type_):
+        super().__init__()
+        self.parent = parent
         self.method = method
         self.args = args
         self.expr = expr
+        self.type = type_
+
+class IsVoidNode(Node):
+    def __init__(self, expr, value):
+        self.expr = expr
+        self.type = 'Bool'
+        self.value = value

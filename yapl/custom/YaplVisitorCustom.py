@@ -14,16 +14,16 @@ class YaplVisitorCustom(yaplVisitor):
 
     def _set_default_types(self):
         # Defaults types
-        self.types['object'] = Klass('object', None)
-        self.types['IO'] = Klass('IO', None)
-        self.types['Int'] = Klass('Int', None)
-        self.types['String'] = Klass('String', None)
-        self.types['Bool'] = Klass('Bool', None)
+        self.types['Object'] = Klass('Object', None)
+        self.types['IO'] = Klass('IO', None, inheritance='Object')
+        self.types['Int'] = Klass('Int', None, inheritance='Object')
+        self.types['String'] = Klass('String', None, inheritance='Object')
+        self.types['Bool'] = Klass('Bool', None, inheritance='Object')
         # Defaults methods
-        # object
-        self.types['object'].define_method('abort', 'object', [])
-        self.types['object'].define_method('type_name', 'String', [])
-        self.types['object'].define_method('copy', 'object', [])
+        # Object
+        self.types['Object'].define_method('abort', 'Object', [])
+        self.types['Object'].define_method('type_name', 'String', [])
+        self.types['Object'].define_method('copy', 'Object', [])
         # io
         self.types['IO'].define_method('out_string', 'SELF_TYPE', [Attribute('x', 'String')])
         self.types['IO'].define_method('out_int', 'SELF_TYPE', [Attribute('x', 'Int')])
@@ -37,6 +37,13 @@ class YaplVisitorCustom(yaplVisitor):
         self.types['String'].define_method('substr', 'String', [Attribute('i', 'Int'), Attribute('l', 'Int')])
         # Bool - default value is false
         # does not have methods
+        # add methods from parent to table
+        for t in self.types:
+            parent = self.types[t].inheritance
+            if parent and parent in self.types:
+                for method in self.types[parent].methods:
+                    self.types[t].define_method(method, self.types[parent].methods[method].return_type, self.types[parent].methods[method].params)
+
 
     # custom visits
     def visitInteger(self, ctx:yaplParser.IntegerContext):
@@ -188,9 +195,9 @@ class YaplVisitorCustom(yaplVisitor):
     
     def _get_super_type(self, features: Node = []):
         if len(features) == 0 or None in features:
-            return 'object'
+            return 'Object'
         same_type = all(f.type == features[0].type for f in features)
-        return features[0].type if same_type else 'object'
+        return features[0].type if same_type else 'Object'
 
     
     def visitWhile(self, ctx:yaplParser.WhileContext):
@@ -198,7 +205,7 @@ class YaplVisitorCustom(yaplVisitor):
         expression = self.visit(ctx.expr(1))
         nodo = WhileNode(condition, expression)
         nodo.line = ctx.WHILE().symbol.line
-        nodo.type = 'object'
+        nodo.type = 'Object'
         # * if contidion is an id check if it is defined
         valid_condition = self._check_for_use_id(condition)
         if valid_condition == 'ERROR':
@@ -254,7 +261,7 @@ class YaplVisitorCustom(yaplVisitor):
         nodo = MethodCallNode('self', method, params)
         nodo.line = ctx.ID_VAR().symbol.line
         method_return = self.types[self.active_scope['class_name']].getMethod(method).return_type
-        nodo.type = method_return
+        nodo.type = self.active_scope['class_name'] if method_return == 'SELF_TYPE' else method_return
         nodo.token = f'{method}({", ".join([p.token for p in params])})'
         method_params = self.types[self.active_scope['class_name']].getMethod(method).params
         # * check if method is defined
@@ -286,7 +293,8 @@ class YaplVisitorCustom(yaplVisitor):
                 nodo.type = 'ERROR'
                 return nodo
             # * Change the value of the param in local var
-            self.types[self.active_scope['class_name']].get_local(method, method_params[i].name).value = params[i].token
+            if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], method_params[i].name):
+                self.types[self.active_scope['class_name']].get_local(method, method_params[i].name).value = params[i].token
         return nodo
     
     def visitAttributesDeclaration(self, ctx:yaplParser.AttributesDeclarationContext):
@@ -317,35 +325,52 @@ class YaplVisitorCustom(yaplVisitor):
         nodo.type = self._get_super_type(list(params) + [body])
         return nodo
     
+    def visitParen(self, ctx:yaplParser.ParenContext):
+        return self.visit(ctx.expr())
+    
+    def visitIsvoid(self, ctx:yaplParser.IsvoidContext):
+        expr = self.visit(ctx.expr())
+        # value = self._check_for_use_id(expr)
+        nodo = IsVoidNode(expr, 'false')
+        nodo.line = ctx.ISVOID().symbol.line
+        return nodo
+    
+    def _find_class_with_method(self, methdo: str):
+        return next((c for c in self.types if self.types[c].getMethod(methdo)), None)
+    
+    def _find_return_type_of_method(self, method: str):
+        return self.types[self._find_class_with_method(method)].getMethod(method).return_type
+    
     def visitMethodCall(self, ctx:yaplParser.MethodCallContext):
         # myPet.say_hello();
         # myPet@Animal.say_hello();
         my_var = self.visit(ctx.expr(0))
         methodCall = ctx.ID_VAR().getText()
         args = [self.visit(ctx.expr(i)) for i in range(1, len(ctx.expr()))]
-        typex = ctx.TYPE_IDENTIFIER().getText() if ctx.TYPE_IDENTIFIER() is not None else None
-        nodo = DispatchNode(typex, methodCall, args, my_var)
+        parent = ctx.TYPE_IDENTIFIER().getText() if ctx.TYPE_IDENTIFIER() is not None else None
+        nodo = DispatchNode(parent, methodCall, args, my_var, self._find_return_type_of_method(methodCall))
         nodo.line = ctx.ID_VAR().symbol.line
         # * Check if var is defined
         valid = self._check_for_use_id(my_var)
         if valid == 'ERROR':
             nodo.type = 'ERROR'
             return nodo
+        # TODO FALTA REVISAR SI MY_VAR ES UNA FUNCION
         # * Check method validation
         my_var_type = my_var.type
-        if typex:
+        if parent:
             # * Check if type is the parent of the var
-            if self.types[my_var_type].inheritance != typex:
+            if self.types[self.active_scope['class_name']].inheritance != parent:
                 error = ErrorNode()
-                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} is not defined in {typex}"
+                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} is not defined in {parent}"
                 return self._extracted_from_visitMethodCall_22(error, nodo)
             # * check if method is defined
-            if typex not in self.types or not self.types[typex].getMethod(methodCall):
-                return self._extracted_from_visitMethodCall_27(ctx, methodCall, nodo)
+            if parent not in self.types or not self.types[parent].getMethod(methodCall):
+                return self._extracted_from_visitMethodCall_27(ctx, methodCall, nodo, my_var_type)
             # * Check if params count is the same as the method
-            if len(args) != len(self.types[typex].getMethod(methodCall).params):
+            if len(args) != len(self.types[parent].getMethod(methodCall).params):
                 error = ErrorNode()
-                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} must have {len(self.types[typex].getMethod(methodCall).params)} params"
+                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} must have {len(self.types[parent].getMethod(methodCall).params)} params"
                 return self._extracted_from_visitMethodCall_22(error, nodo)
             for i in range(len(args)):
                 # * Check if var is defined
@@ -354,14 +379,14 @@ class YaplVisitorCustom(yaplVisitor):
                     nodo.type = 'ERROR'
                     return nodo
                 # * check if params are the same type as the method
-                if args[i].type != self.types[typex].getMethod(methodCall).params[i].type:
+                if args[i].type != self.types[parent].getMethod(methodCall).params[i].type:
                     error = ErrorNode()
-                    error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} param {self.types[typex].getMethod(methodCall).params[i].name} must be {self.types[typex].getMethod(methodCall).params[i].type}"
+                    error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} param {self.types[parent].getMethod(methodCall).params[i].name} must be {self.types[parent].getMethod(methodCall).params[i].type}"
                     return self._extracted_from_visitMethodCall_22(error, nodo)
         else:
             # * check if method is defined
             if my_var_type not in self.types or not self.types[my_var_type].getMethod(methodCall):
-                return self._extracted_from_visitMethodCall_27(ctx, methodCall, nodo)
+                return self._extracted_from_visitMethodCall_27(ctx, methodCall, nodo, my_var_type)
             # * Check if params count is the same as the method
             if len(args) != len(self.types[my_var_type].getMethod(methodCall).params):
                 error = ErrorNode()
@@ -381,9 +406,9 @@ class YaplVisitorCustom(yaplVisitor):
         return nodo
 
     # TODO Rename this here and in `visitMethodCall`
-    def _extracted_from_visitMethodCall_27(self, ctx, methodCall, nodo):
+    def _extracted_from_visitMethodCall_27(self, ctx, methodCall, nodo, class_name):
         error = ErrorNode()
-        error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} is not defined"
+        error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} is not defined in {class_name}"
         return self._extracted_from_visitMethodCall_22(error, nodo)
 
     # TODO Rename this here and in `visitMethodCall`
@@ -450,17 +475,6 @@ class YaplVisitorCustom(yaplVisitor):
             error.message = f"ERROR on line {ctx.CLASS().symbol.line}: Class {name} is already defined"
             self.errors.append(error)
         feature = []
-        scope = { 'class_name': name, 'method_name': None }
-        self.active_scope = scope
-        for i in range(len(ctx.feature())):
-            f = self.visit(ctx.feature(i))
-            if isinstance(f, MethodNode):
-                # * add methods to table in class
-                self.types[name].define_method(f.name, f.return_type, f.params)
-            feature.append(f)
-            self._addSimbolToTable(scope, f)
-        nodo = ClassNode(name, parent, feature)
-        nodo.line = ctx.CLASS().symbol.line
         # * check if parent is not one of the basic types
         if parent in ['Int', 'String', 'Bool']:
             error = ErrorNode()
@@ -477,6 +491,17 @@ class YaplVisitorCustom(yaplVisitor):
             else:
                 for method in self.types[parent].methods:
                     self.types[name].define_method(method, self.types[parent].methods[method].return_type, self.types[parent].methods[method].params)
+        scope = { 'class_name': name, 'method_name': None }
+        self.active_scope = scope
+        for i in range(len(ctx.feature())):
+            f = self.visit(ctx.feature(i))
+            if isinstance(f, MethodNode):
+                # * add methods to table in class
+                self.types[name].define_method(f.name, f.return_type, f.params)
+            feature.append(f)
+            self._addSimbolToTable(scope, f)
+        nodo = ClassNode(name, parent, feature)
+        nodo.line = ctx.CLASS().symbol.line
         # TODO falta el type
         return nodo
     
@@ -641,6 +666,9 @@ class YaplVisitorCustom(yaplVisitor):
     def _check_for_use_id(self, node: Node) -> str or None:
         error = ErrorNode()
         if node.type == 'Id':
+            if node.token == 'self':
+                node.type = self.active_scope['class_name']
+                return None
             if not self._is_defined(node.token, self.active_scope):
                 error.message = f"ERROR on line {node.line}: Variable {node.token} is not defined"
                 self.errors.append(error)
