@@ -618,15 +618,18 @@ class YaplVisitorCustom(yaplVisitor):
             self.types[scope['class_name']].define_attribute(node.idx, node.type, value)
         elif isinstance(node, MethodNode):
             print('method')
-            for s in node.body.statements:
-                new_scope = { 'class_name': scope['class_name'], 'method_name': node.name }
-                self._addSimbolToTable(new_scope, s)
-            # TODO check if a local var is the same type as the return type
-            if hasattr(node.body.statements[-1], 'type') and node.body.statements[-1].type != node.return_type != 'SELF_TYPE':
-                error = ErrorNode()
-                error.message = f"ERROR on line {node.line}: Method {node.name} must return {node.return_type}"
-                self.errors.append(error)
-                return 'ERROR'
+            if isinstance(node.body, BlockNode):
+                for s in node.body.statements:
+                    new_scope = { 'class_name': scope['class_name'], 'method_name': node.name }
+                    self._addSimbolToTable(new_scope, s)
+                # TODO check if a local var is the same type as the return type
+                if hasattr(node.body.statements[-1], 'type') and node.body.statements[-1].type != node.return_type != 'SELF_TYPE':
+                    error = ErrorNode()
+                    error.message = f"ERROR on line {node.line}: Method {node.name} must return {node.return_type}"
+                    self.errors.append(error)
+                    return 'ERROR'
+            else:
+                self._addSimbolToTable(scope, node.body)
         elif isinstance(node, AssignNode):
             print('assign')
             # * CHECK if variable is defined
