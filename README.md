@@ -76,7 +76,7 @@ python main.py ./tests/<file_to_test>.cl
   - [x] Si `<id>` es un atributo de alguna clase este debe de haberse definido antes
   - [ ] Se pueden tener identificadores recurisivos [class1].[class2].[class3]...
 
-- [ ] Metodos y returns
+- [x] Metodos y returns
   - [x] Los argumentos que son de tipo basicio se pasan por valor
   - [x] Los argumetnos que son de tipos derivados se pasan po referencia - NOT NEED FOR THIS PART
   - [x] Los argumentos del metodo son variables locales
