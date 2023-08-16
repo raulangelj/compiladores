@@ -78,7 +78,7 @@ python main.py ./tests/<file_to_test>.cl
 
 - [ ] Metodos y returns
   - [x] Los argumentos que son de tipo basicio se pasan por valor
-  - [ ] Los argumetnos que son de tipos derivados se pasan po referencia - objetos?
+  - [x] Los argumetnos que son de tipos derivados se pasan po referencia - NOT NEED FOR THIS PART
   - [x] Los argumentos del metodo son variables locales
   - [x] Los argumentos se evaluan de izquierda a derecha
   - [x] El tipo de retorno del metodo debe concidir con tipo de retorno
