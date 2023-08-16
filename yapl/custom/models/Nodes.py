@@ -166,7 +166,7 @@ class NewNode(Node):
         self.type = typex
         self.token = f'NEW {typex}'
 
-class MethodCallNode(Node):
+class MethodCallNode(Node): # expr named functionCall
     def __init__(self, obj, method, params):
         self.obj = obj
         self.method = method
@@ -175,4 +175,12 @@ class MethodCallNode(Node):
 class LetNode(Node):
     def __init__(self, param_list, expr):
         self.param_list = param_list
+        self.expr = expr
+
+
+class DispatchNode(Node): # for method dispatch or methodCall
+    def __init__(self, typex, method, args, expr):
+        self.type = typex
+        self.method = method
+        self.args = args
         self.expr = expr

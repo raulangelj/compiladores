@@ -317,6 +317,82 @@ class YaplVisitorCustom(yaplVisitor):
         nodo.type = self._get_super_type(list(params) + [body])
         return nodo
     
+    def visitMethodCall(self, ctx:yaplParser.MethodCallContext):
+        # myPet.say_hello();
+        # myPet@Animal.say_hello();
+        my_var = self.visit(ctx.expr(0))
+        methodCall = ctx.ID_VAR().getText()
+        args = [self.visit(ctx.expr(i)) for i in range(1, len(ctx.expr()))]
+        typex = ctx.TYPE_IDENTIFIER().getText() if ctx.TYPE_IDENTIFIER() is not None else None
+        nodo = DispatchNode(typex, methodCall, args, my_var)
+        nodo.line = ctx.ID_VAR().symbol.line
+        # * Check if var is defined
+        valid = self._check_for_use_id(my_var)
+        if valid == 'ERROR':
+            nodo.type = 'ERROR'
+            return nodo
+        # * Check method validation
+        my_var_type = my_var.type
+        if typex:
+            # * Check if type is the parent of the var
+            if self.types[my_var_type].inheritance != typex:
+                error = ErrorNode()
+                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} is not defined in {typex}"
+                return self._extracted_from_visitMethodCall_22(error, nodo)
+            # * check if method is defined
+            if typex not in self.types or not self.types[typex].getMethod(methodCall):
+                return self._extracted_from_visitMethodCall_27(ctx, methodCall, nodo)
+            # * Check if params count is the same as the method
+            if len(args) != len(self.types[typex].getMethod(methodCall).params):
+                error = ErrorNode()
+                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} must have {len(self.types[typex].getMethod(methodCall).params)} params"
+                return self._extracted_from_visitMethodCall_22(error, nodo)
+            for i in range(len(args)):
+                # * Check if var is defined
+                valid = self._check_for_use_id(args[i])
+                if valid == 'ERROR':
+                    nodo.type = 'ERROR'
+                    return nodo
+                # * check if params are the same type as the method
+                if args[i].type != self.types[typex].getMethod(methodCall).params[i].type:
+                    error = ErrorNode()
+                    error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} param {self.types[typex].getMethod(methodCall).params[i].name} must be {self.types[typex].getMethod(methodCall).params[i].type}"
+                    return self._extracted_from_visitMethodCall_22(error, nodo)
+        else:
+            # * check if method is defined
+            if my_var_type not in self.types or not self.types[my_var_type].getMethod(methodCall):
+                return self._extracted_from_visitMethodCall_27(ctx, methodCall, nodo)
+            # * Check if params count is the same as the method
+            if len(args) != len(self.types[my_var_type].getMethod(methodCall).params):
+                error = ErrorNode()
+                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} must have {len(self.types[my_var_type].getMethod(methodCall).params)} params"
+                return self._extracted_from_visitMethodCall_22(error, nodo)
+            for i in range(len(args)):
+                # * Check if var is defined
+                valid = self._check_for_use_id(args[i])
+                if valid == 'ERROR':
+                    nodo.type = 'ERROR'
+                    return nodo
+                # * check if params are the same type as the method
+                if args[i].type != self.types[my_var_type].getMethod(methodCall).params[i].type:
+                    error = ErrorNode()
+                    error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} param {self.types[my_var_type].getMethod(methodCall).params[i].name} must be {self.types[my_var_type].getMethod(methodCall).params[i].type}"
+                    return self._extracted_from_visitMethodCall_22(error, nodo)
+        return nodo
+
+    # TODO Rename this here and in `visitMethodCall`
+    def _extracted_from_visitMethodCall_27(self, ctx, methodCall, nodo):
+        error = ErrorNode()
+        error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} is not defined"
+        return self._extracted_from_visitMethodCall_22(error, nodo)
+
+    # TODO Rename this here and in `visitMethodCall`
+    def _extracted_from_visitMethodCall_22(self, error, nodo):
+        self.errors.append(error)
+        nodo.type = 'ERROR'
+        return nodo
+        
+    
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
         name = ctx.ID_VAR().getText()
         self.active_scope['method_name'] = name

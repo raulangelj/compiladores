@@ -1,23 +1,40 @@
-class Main inherits IO {
+class Animal {
   a : Int <- 1;
-  b : String <- "hello";
-  f : String <- "jj";
-  
-  sum(b: Int, d: Int) : Int {
+  say_hello() : SELF_TYPE {
     {
-      (
-        let f: Int in 
-        {
-          b <- 7;
-          f <- 1;
-        }
-      );
+      a <- 2;
+      self;
     }
   };
+};
 
+class Dog inherits Animal {
+  a : Int <- 3;
+  say_hello() : SELF_TYPE {
+    {
+      a <- 4;
+      self;
+    }
+  };
+};
+
+class Cat inherits Animal {
+  a : Int <- 5;
+  say_hello() : SELF_TYPE {
+    {
+      a <- 5;
+      self;
+    }
+  };
+};
+
+class Main inherits IO {
+  a : Animal <- new Animal;
+  b : Dog <- new Dog;
   main() : SELF_TYPE {
     {
-      a <- sum(1, 2);
+      a.say_hello();
+      b@Animal.say_hello();
     }
   };
 };

@@ -37,22 +37,22 @@ python main.py ./tests/<file_to_test>.cl
 
 ## :red_circle: Reglas semanticas
 
-- [ ]  Main
+- [x]  Main
   - [x] Debe tener una clase Main
   - [x] La clase main solo puede heredar de IO
   - [x] La clase Main debe de tener un metodo main sin parametros
-  - [ ] La ejecucion inicia evaluando (new Main).main()
+  - [x] La ejecucion inicia evaluando (new Main).main() - NO EN ESTA PARTE
 
 - [x] BASICS Types
   - [x] Int, String, Bool
   - [x] Se puede crear tipos de datos apartir de clases
   - [x] Las clases de tipos basicos no pueden ser padres de otras clases
 
-- [ ] Scope
+- [x] Scope
   - [x] Los atributos deben de ser definidos antes de su uso
-  - [ ] Un metodo puede ser llamado de forma recursiva - ! COMO VALIDARLO
+  - [x] Un metodo puede ser llamado de forma recursiva
   - [x] Ambito global y local, las variables let son locales
-  - [ ] Todos los atributos y metodos de las clases son publicos
+  - [x] Todos los atributos y metodos de las clases son publicos
   - [x] Scope local tiene prioridad sobre global
   - [x] Ningun identificador puede ser definido mas de una vez
   - [x] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A
