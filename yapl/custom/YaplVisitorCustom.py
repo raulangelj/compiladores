@@ -302,6 +302,28 @@ class YaplVisitorCustom(yaplVisitor):
             self.types[self.active_scope['class_name']].define_local(name, idx, typex)
         typex = ctx.TYPE_IDENTIFIER().getText()
         body = self.visit(ctx.expr())
+        # * Validate signature if method is inherited
+        if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].inheritance:
+            parent = self.types[self.active_scope['class_name']].inheritance
+            if parent in self.types and self.types[parent].getMethod(name):
+                parent_method = self.types[parent].getMethod(name)
+                if parent_method.return_type != typex:
+                    error = ErrorNode()
+                    error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} must return {parent_method.return_type} as defined in parent"
+                    self.errors.append(error)
+                    typex = 'ERROR'
+                if len(parent_method.params) != len(params):
+                    error = ErrorNode()
+                    error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} must have {len(parent_method.params)} params as defined in parent"
+                    self.errors.append(error)
+                    typex = 'ERROR'
+                else:
+                    for i in range(len(params)):
+                        if params[i].type != parent_method.params[i].type:
+                            error = ErrorNode()
+                            error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} param {parent_method.params[i].name} must be {parent_method.params[i].type} as defined in parent"
+                            self.errors.append(error)
+                            typex = 'ERROR'
         nodo = MethodNode(name, params, typex, body)
         nodo.line = ctx.ID_VAR().symbol.line
         nodo.type = typex

@@ -55,7 +55,7 @@ python main.py ./tests/<file_to_test>.cl
   - [ ] Todos los atributos y metodos de las clases son publicos
   - [ ] Scope local tiene prioridad sobre global
   - [x] Ningun identificador puede ser definido mas de una vez
-  - [ ] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A. - ! NO ENTIENDO
+  - [ ] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A
   - [x] No se puede herencia multiple y herencia recursiva
 
 - [x] Default
