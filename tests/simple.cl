@@ -1,10 +1,16 @@
 class Main inherits IO {
   a : Int <- 1;
-  c : A <- new A;
+  b : String <- "hello";
+  
+  sum(b: Int, d: Int) : Int {
+    {
+      b + d; 
+    }
+  };
 
   main() : SELF_TYPE {
     {
-      a <- b;
+      a <- sum(1, 2);
     }
   };
 };

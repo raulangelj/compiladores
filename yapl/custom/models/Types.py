@@ -17,6 +17,9 @@ class Method():
         self.return_type = return_type
         self.params = params
 
+    def define_local(self, name: str, _type: str, value = None):
+        self.locals[name] = Attribute(name, _type, value)
+    
     def __eq__(self, __value: object) -> bool:
         return self.params == __value.params and self.return_type == __value.return_type
     
@@ -32,10 +35,12 @@ class Klass():
         self.type = _type
         self.inheritance = inheritance # * is the type of var or class
         self.node = node
+        # the key for the locals will be varName,MethodName
         self.attributes = {} # ! only for class
         self.methods = {} #! only for class
+        self.locals = {}
         if _type == 'var':
-            self.value = value if value else self._default_type()
+            self.value = value if value else self._default_type(inheritance)
 
     def get_attribute(self, name: str) -> Attribute:
         return self.attributes[name] if name in self.attributes else None
@@ -56,12 +61,21 @@ class Klass():
     def get_attributes_names(self) -> List[str]:
         return list(self.attributes.keys())
     
-    def _default_type(self):
-        if self.inheritance == 'Int':
+    def define_local(self, scope: str, name: str, _type: str, value = None):
+        # create a dictionary of dictionaries
+        if scope not in self.locals:
+            self.locals[scope] = {}
+        self.locals[scope][name] = Attribute(name, _type, value or self._default_type(_type))
+
+    def get_local(self, scope: str, name: str) -> Attribute:
+        return self.locals[scope][name] if scope in self.locals and name in self.locals[scope] else None
+    
+    def _default_type(self, _type : str = None):
+        if _type == 'Int':
             return 0
-        elif self.inheritance == 'String':
+        elif _type == 'String':
             return ''
-        elif self.inheritance == 'Bool':
+        elif _type == 'Bool':
             return False
         else:
             return None
