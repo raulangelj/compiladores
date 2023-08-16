@@ -56,7 +56,7 @@ python main.py ./tests/<file_to_test>.cl
   - [ ] Scope local tiene prioridad sobre global
   - [x] Ningun identificador puede ser definido mas de una vez
   - [ ] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A. - ! NO ENTIENDO
-  - [ ] No se puede herencia multiple y herencia recursiva - ! NO ENTIENDO LA RECURSIVA
+  - [x] No se puede herencia multiple y herencia recursiva
 
 - [x] Default
   - [x] Int -> 0
