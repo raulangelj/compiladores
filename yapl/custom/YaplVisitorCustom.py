@@ -186,7 +186,9 @@ class YaplVisitorCustom(yaplVisitor):
         nodo.type = self._get_super_type(body_list)
         return nodo
     
-    def _get_super_type(self, features: Node):
+    def _get_super_type(self, features: Node = []):
+        if len(features) == 0 or None in features:
+            return 'object'
         same_type = all(f.type == features[0].type for f in features)
         return features[0].type if same_type else 'object'
 
@@ -286,8 +288,34 @@ class YaplVisitorCustom(yaplVisitor):
             # * Change the value of the param in local var
             self.types[self.active_scope['class_name']].get_local(method, method_params[i].name).value = params[i].token
         return nodo
+    
+    def visitAttributesDeclaration(self, ctx:yaplParser.AttributesDeclarationContext):
+        idx = ctx.ID_VAR().getText()
+        typex = ctx.TYPE_IDENTIFIER().getText()
+        expression = self.visit(ctx.expr()) if ctx.expr() is not None else None
+        nodo = AttrNode(idx, typex, expression)
+        nodo.line = ctx.ID_VAR().symbol.line
+        return nodo
         
-
+    def visitLet(self, ctx:yaplParser.LetContext):
+        params = []
+        for i in range(len(ctx.var_typescript())):
+            p = self.visit(ctx.var_typescript(i))
+            params.append(p)
+            # * Check if var is defined in locals
+            if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], p.idx):
+                error = ErrorNode()
+                error.message = f"ERROR on line {ctx.LET().symbol.line}: Variable {p.idx} is already defined"
+                self.errors.append(error)
+                p.type = 'ERROR'
+            # * Add to local variables table
+            self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], p.idx, p.type)
+        body = self.visit(ctx.expr())
+        self._addSimbolToTable(self.active_scope, body)
+        nodo = LetNode(params, body)
+        nodo.line = ctx.LET().symbol.line
+        nodo.type = self._get_super_type(list(params) + [body])
+        return nodo
     
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
         name = ctx.ID_VAR().getText()
@@ -493,7 +521,7 @@ class YaplVisitorCustom(yaplVisitor):
                 new_scope = { 'class_name': scope['class_name'], 'method_name': node.name }
                 self._addSimbolToTable(new_scope, s)
             # TODO check if a local var is the same type as the return type
-            if node.body.statements[-1].type != node.return_type != 'SELF_TYPE':
+            if hasattr(node.body.statements[-1], 'type') and node.body.statements[-1].type != node.return_type != 'SELF_TYPE':
                 error = ErrorNode()
                 error.message = f"ERROR on line {node.line}: Method {node.name} must return {node.return_type}"
                 self.errors.append(error)
@@ -520,7 +548,11 @@ class YaplVisitorCustom(yaplVisitor):
                     self.errors.append(error)
                     return 'ERROR'
                 value = node.value.token if node.value else None
-                self.types[scope['class_name']].get_attribute(node.idx).value = value
+                self._get_variable(node.idx).value = value
+        elif isinstance(node, BlockNode):
+            for s in node.statements:
+                new_scope = { 'class_name': scope['class_name'], 'method_name': scope['method_name'] }
+                self._addSimbolToTable(new_scope, s)
         return None
     
     def _get_variable(self, name: str) -> Attribute or None:

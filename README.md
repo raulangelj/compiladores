@@ -51,11 +51,11 @@ python main.py ./tests/<file_to_test>.cl
 - [ ] Scope
   - [x] Los atributos deben de ser definidos antes de su uso
   - [ ] Un metodo puede ser llamado de forma recursiva - ! COMO VALIDARLO
-  - [ ] Ambito global y local, las variables let son locales
+  - [x] Ambito global y local, las variables let son locales
   - [ ] Todos los atributos y metodos de las clases son publicos
-  - [ ] Scope local tiene prioridad sobre global
+  - [x] Scope local tiene prioridad sobre global
   - [x] Ningun identificador puede ser definido mas de una vez
-  - [ ] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A
+  - [x] Si B hereda de A y B sobreescribe un método de A, este método debe de poseer la misma firma con la que fue declarado en A
   - [x] No se puede herencia multiple y herencia recursiva
 
 - [x] Default

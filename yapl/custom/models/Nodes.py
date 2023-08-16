@@ -171,3 +171,8 @@ class MethodCallNode(Node):
         self.obj = obj
         self.method = method
         self.params = params
+
+class LetNode(Node):
+    def __init__(self, param_list, expr):
+        self.param_list = param_list
+        self.expr = expr

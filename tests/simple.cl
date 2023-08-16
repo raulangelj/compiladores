@@ -1,29 +1,17 @@
-class A {
-  a : Int <- 1;
-
-  sum(b: Int, d: Int) : Int {
-    {
-      b + d; 
-    }
-  };
-};
-
-class B inherits A {
-
-  sum(a: Int, u: String) : String {
-    {
-      a + u; 
-    }
-  };
-};
-
 class Main inherits IO {
   a : Int <- 1;
   b : String <- "hello";
+  f : String <- "jj";
   
   sum(b: Int, d: Int) : Int {
     {
-      b + d; 
+      (
+        let f: Int in 
+        {
+          b <- 7;
+          f <- 1;
+        }
+      );
     }
   };
 
