@@ -229,7 +229,7 @@ class yaplLexer(Lexer):
               text = self.text
 
               char_count = 0
-              char_limit = 10
+              char_limit = 2048
 
               eof = False
               toolong = False
