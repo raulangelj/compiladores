@@ -101,7 +101,14 @@ python main.py ./tests/<file_to_test>.cl
 
 ## :bookmark: Tests
 
-TO DO
+Files to test:
+
+- [x] cool.cl
+- [x] hello_-world.cl
+- [x] recur.cl
+- [ ] arith.cl
+- [ ] list.cl
+- [ ] primes.cl
 
 ## :star2: Authors
 

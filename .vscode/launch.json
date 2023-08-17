@@ -13,9 +13,10 @@
       "justMyCode": true,
       "args": [
         // ".\\tests\\hello_world.cl"
-        // ".\\tests\\arith.cl"
+        ".\\tests\\arith.cl"
         // ".\\tests\\primes.cl"
-        ".\\tests\\recur.cl"
+        // ".\\tests\\recur.cl"
+        // ".\\tests\\list.cl"
         // ".\\tests\\cool.cl"
         //".\\tests\\simple.cl"
       ]
