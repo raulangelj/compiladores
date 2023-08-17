@@ -167,7 +167,7 @@ class YaplVisitorCustom(yaplVisitor):
     
     def visitNegative(self, ctx: yaplParser.NegativeContext):
         node = self.visit(ctx.expr())
-        nodo = NegativeNode(node, f'~{ctx.expr().getText()}')
+        nodo = NegativeNode(node, f'{ctx.expr().getText()}')
         nodo.type = node.type
         nodo.line = ctx.NEGATIVE().symbol.line
         self._getError(node, None, 'Negative', nodo.line)
