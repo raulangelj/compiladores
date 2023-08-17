@@ -131,9 +131,10 @@ class NotNode(Node):
         self.type = 'Bool'
 
 class NegativeNode(Node):
-    def __init__(self, token):
-        self.token = token
+    def __init__(self, value, token):
+        self.value = value
         self.type = 'Negative'
+        self.token = token
 
 class BooleanNode(Node):
     def __init__(self, token):

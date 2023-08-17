@@ -167,7 +167,7 @@ class YaplVisitorCustom(yaplVisitor):
     
     def visitNegative(self, ctx: yaplParser.NegativeContext):
         node = self.visit(ctx.expr())
-        nodo = NegativeNode(node)
+        nodo = NegativeNode(node, f'~{ctx.expr().getText()}')
         nodo.type = node.type
         nodo.line = ctx.NEGATIVE().symbol.line
         self._getError(node, None, 'Negative', nodo.line)
@@ -187,7 +187,11 @@ class YaplVisitorCustom(yaplVisitor):
         return nodo
     
     def visitBlock(self, ctx:yaplParser.BlockContext):
-        body_list = [self.visit(expr) for expr in ctx.expr()]
+        # body_list = [self.visit(expr) for expr in ctx.expr()]
+        body_list =[]
+        for expr in ctx.expr():
+            body_list.append(self.visit(expr))
+            self._addSimbolToTable(self.active_scope, body_list[-1])
         nodo = BlockNode(body_list)
         nodo.line = ctx.LBRACE().symbol.line
         nodo.type = self._get_super_type(body_list)
@@ -430,7 +434,17 @@ class YaplVisitorCustom(yaplVisitor):
             # * Add to local variables table
             self.types[self.active_scope['class_name']].define_local(name, idx, typex)
         typex = ctx.TYPE_IDENTIFIER().getText()
+        nodo = MethodNode(name, params, typex, None)
+        # * check if method is defined
+        if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].getMethod(name):
+            error = ErrorNode()
+            error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} is already defined"
+            self.errors.append(error)
+            nodo.type = 'ERROR'
+        # * Add to the table for recursive calls
+        self.types[self.active_scope['class_name']].define_method(name, typex, params)
         body = self.visit(ctx.expr())
+        self._addSimbolToTable(self.active_scope, body)
         # * Validate signature if method is inherited
         if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].inheritance:
             parent = self.types[self.active_scope['class_name']].inheritance
@@ -453,15 +467,9 @@ class YaplVisitorCustom(yaplVisitor):
                             error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} param {parent_method.params[i].name} must be {parent_method.params[i].type} as defined in parent"
                             self.errors.append(error)
                             typex = 'ERROR'
-        nodo = MethodNode(name, params, typex, body)
+        nodo.body = body
         nodo.line = ctx.ID_VAR().symbol.line
         nodo.type = typex
-        # * check if method is defined
-        if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].getMethod(name):
-            error = ErrorNode()
-            error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {name} is already defined"
-            self.errors.append(error)
-            nodo.type = 'ERROR'
         return nodo
     
     def visitClasss(self, ctx:yaplParser.ClasssContext):
@@ -495,9 +503,9 @@ class YaplVisitorCustom(yaplVisitor):
         self.active_scope = scope
         for i in range(len(ctx.feature())):
             f = self.visit(ctx.feature(i))
-            if isinstance(f, MethodNode):
+            # if isinstance(f, MethodNode):
                 # * add methods to table in class
-                self.types[name].define_method(f.name, f.return_type, f.params)
+                # self.types[name].define_method(f.name, f.return_type, f.params)
             feature.append(f)
             self._addSimbolToTable(scope, f)
         nodo = ClassNode(name, parent, feature)
@@ -621,7 +629,7 @@ class YaplVisitorCustom(yaplVisitor):
             if isinstance(node.body, BlockNode):
                 for s in node.body.statements:
                     new_scope = { 'class_name': scope['class_name'], 'method_name': node.name }
-                    self._addSimbolToTable(new_scope, s)
+                    # self._addSimbolToTable(new_scope, s)
                 # TODO check if a local var is the same type as the return type
                 if hasattr(node.body.statements[-1], 'type') and node.body.statements[-1].type != node.return_type != 'SELF_TYPE':
                     error = ErrorNode()

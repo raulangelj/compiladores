@@ -12,7 +12,11 @@
       "console": "integratedTerminal",
       "justMyCode": true,
       "args": [
-        ".\\tests\\cool.cl"
+        // ".\\tests\\hello_world.cl"
+        // ".\\tests\\arith.cl"
+        // ".\\tests\\primes.cl"
+        ".\\tests\\recur.cl"
+        // ".\\tests\\cool.cl"
         //".\\tests\\simple.cl"
       ]
     }
