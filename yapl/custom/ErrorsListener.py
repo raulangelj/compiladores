@@ -4,10 +4,12 @@ from termcolor import colored
 class ErrorListener(object):
   def __init__(self) -> None:
     self.true = False
+    self.errors = []
 
   def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-    print(colored(f"Bad token at line: {line} : {column}", 'red'))
-    print(colored(f"Hint: {msg}", 'red'))
+    # print(colored(f"Bad token at line: {line} : {column}", 'red'))
+    # print(colored(f"Hint: {msg}", 'red'))
+    self.errors.append(f"Bad token at line: {line} : {column}" + '\n' + f"Hint: {msg}")
     self.true = True
     # exit(1)
 

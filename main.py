@@ -77,5 +77,53 @@ def main():
     process.write(input_stream.strdata)
     process.close()
 
+def evaluate_code(code: str):
+    success = 1
+    errors = {}
+    # lexer
+    lexer = yaplLexer(code)
+    token_stream = CommonTokenStream(lexer)
+    error_listener_lexer = ErrorListener()
+    lexer.removeErrorListeners()
+    lexer.addErrorListener(error_listener_lexer)
+
+    # parser
+    parser = yaplParser(token_stream)
+    error_listener_parser = ErrorListener()
+    parser.removeErrorListeners()
+    parser.addErrorListener(error_listener_parser)
+    tree = parser.program()
+
+    # display parse tree in text form
+    # TODO: add flag -tree
+    # print(Trees.toStringTree(tree, None, parser))
+    # print_all_tokens(token_stream)
+
+    visitor = VisitorDefinition()
+    visitor.visit(tree)
+    visitor.show_variables_table()
+    visitor.show_classes_table()
+
+    semanticsVisitor = YaplVisitorCustom()
+    semanticsVisitor.types = visitor.types
+    semanticsVisitor.errors = visitor.errors
+    program = semanticsVisitor.visit(tree)
+
+    # visitor = YaplVisitorCustom()
+    # program = visitor.visit(tree)
+
+    # Semantic erros
+    if len(visitor.errors) > 0:
+        success = 0
+        print(colored(f"ERROR: The program has {len(visitor.errors)} SEMANTIC errors", 'red'))
+        errors['semantic'] = visitor.errors
+    
+    if error_listener_lexer.true or error_listener_parser.true:
+        success = 0
+        print(colored("ERROR: The program has LEXIC errors", 'red'))
+        errors['lexical'] = error_listener_lexer.errors + error_listener_parser.errors
+
+    return [success, errors]
+
 if __name__ == '__main__':
     main()

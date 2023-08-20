@@ -61,30 +61,20 @@ const Landing = () => {
     setProcessing(true);
     const formData = {
       language_id: language.id,
-      // encode source code in base64
-      source_code: btoa(code),
-      stdin: btoa(customInput),
+      code: code,
     };
     console.log('COMPILE')
     const options = {
       method: "POST",
-      url: process.env.REACT_APP_RAPID_API_URL,
-      params: { base64_encoded: "true", fields: "*" },
-      headers: {
-        "content-type": "application/json",
-        "Content-Type": "application/json",
-        "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
-        "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
-      },
+      url: 'http://127.0.0.1:5000',
       data: formData,
     };
 
     axios
       .request(options)
       .then(function (response) {
-        console.log("res.data", response.data);
-        const token = response.data.token;
-        checkStatus(token);
+        console.log("res.data", response.data['success']);
+        checkStatus(response)
       })
       .catch((err) => {
         let error = err.response ? err.response.data : err;
@@ -104,39 +94,18 @@ const Landing = () => {
       });
   };
 
-  const checkStatus = async (token) => {
-    const options = {
-      method: "GET",
-      url: process.env.REACT_APP_RAPID_API_URL + "/" + token,
-      params: { base64_encoded: "true", fields: "*" },
-      headers: {
-        "X-RapidAPI-Host": process.env.REACT_APP_RAPID_API_HOST,
-        "X-RapidAPI-Key": process.env.REACT_APP_RAPID_API_KEY,
-      },
-    };
-    try {
-      let response = await axios.request(options);
-      let statusId = response.data.status?.id;
-
-      // Processed - we have a result
-      if (statusId === 1 || statusId === 2) {
-        // still processing
-        setTimeout(() => {
-          checkStatus(token);
-        }, 2000);
-        return;
-      } else {
-        setProcessing(false);
-        setOutputDetails(response.data);
-        showSuccessToast(`Compiled Successfully!`);
-        console.log("response.data", response.data);
-        return;
-      }
-    } catch (err) {
-      console.log("err", err);
+  const checkStatus = async (response) => {
+    // Processed - we have a result
+    setProcessing(false);
+    setOutputDetails({ status: response.data['success'], compile_output: response.data['errors'] });
+    if (response.data['success'] === 1) {
+      showSuccessToast(`Compiled Successfully!`);
+    } else {
       setProcessing(false);
       showErrorToast();
     }
+    console.log("response.data", response.data);
+    return;
   };
 
   function handleThemeChange(th) {
@@ -228,7 +197,6 @@ const Landing = () => {
               {processing ? "Processing..." : "Compile and Execute"}
             </button>
           </div>
-          {outputDetails && <OutputDetails outputDetails={outputDetails} />}
         </div>
       </div>
     </div>

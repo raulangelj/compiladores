@@ -2,33 +2,31 @@ import React from "react";
 
 const OutputWindow = ({ outputDetails }) => {
   const getOutput = () => {
-    let statusId = outputDetails?.status?.id;
+    let statusId = outputDetails?.status;
+    console.log(outputDetails?.compile_output)
 
-    if (statusId === 6) {
+    if (statusId === 0) {
       // compilation error
       return (
         <pre className="px-2 py-1 font-normal text-xs text-red-500">
-          {atob(outputDetails?.compile_output)}
+          {outputDetails?.compile_output['lexical']?.map((error) => {
+            return error
+          })}
+          {outputDetails?.compile_output['semantic']?.map((error) => {
+            return error
+          })}
         </pre>
       );
-    } else if (statusId === 3) {
+    } else if (statusId === 1) {
       return (
         <pre className="px-2 py-1 font-normal text-xs text-green-500">
-          {atob(outputDetails.stdout) !== null
-            ? `${atob(outputDetails.stdout)}`
-            : null}
-        </pre>
-      );
-    } else if (statusId === 5) {
-      return (
-        <pre className="px-2 py-1 font-normal text-xs text-red-500">
-          {`Time Limit Exceeded`}
+          Success
         </pre>
       );
     } else {
       return (
         <pre className="px-2 py-1 font-normal text-xs text-red-500">
-          {atob(outputDetails?.stderr)}
+          {outputDetails?.stderr}
         </pre>
       );
     }
