@@ -35,6 +35,27 @@ python
 python main.py ./tests/<file_to_test>.cl
 ```
 
+
+## :rocket: RUN PROJECT 1
+
+### Run server
+``` python
+set FLASK_APP=app.py
+flask run
+```
+### Run server
+``` python
+set FLASK_APP=app.py
+flask run
+```
+
+### Run frontend
+``` javascript
+cd frontend
+npm i
+npm start
+```
+
 ## :red_circle: Reglas semanticas
 
 - [x]  Main
@@ -68,13 +89,13 @@ python main.py ./tests/<file_to_test>.cl
   - [x] Casteo implicito de Int a Bool (0 es False y 1 es True)
   - [x] NO se puede casteo explicito
 
-- [ ]  Asignacion
+- [x]  Asignacion
   - [x] `<id>` <- `<expr>`
   - [x] El tipo de expr debe ser del mismo tipo de id o puede ser heredado
   - [x] El valor de `<expr>` se convierte a `<id>`
   - [x] El tipo de dato de la asignacion es el tipo de `<exp>`
   - [x] Si `<id>` es un atributo de alguna clase este debe de haberse definido antes
-  - [ ] Se pueden tener identificadores recurisivos [class1].[class2].[class3]...
+  - [x] Se pueden tener identificadores recurisivos [class1].[class2].[class3]...
 
 - [x] Metodos y returns
   - [x] Los argumentos que son de tipo basicio se pasan por valor
@@ -106,9 +127,9 @@ Files to test:
 - [x] cool.cl
 - [x] hello_-world.cl
 - [x] recur.cl
-- [ ] arith.cl
-- [ ] list.cl
-- [ ] primes.cl
+- [x] arith.cl
+- [x] list.cl
+- [x] primes.cl
 
 ## :star2: Authors
 
