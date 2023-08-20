@@ -26,9 +26,10 @@ class Method():
 class ScopeType(TypedDict):
     class_name: str
     method_name: str
+    level: int
 
 class Klass():
-    def __init__(self, name: str, scope: ScopeType = None, _type: Literal['class', 'var'] = 'class', inheritance: str = None, value = None, node = None):
+    def __init__(self, name: str, scope: ScopeType = None, _type: Literal['class', 'var'] = 'class', inheritance: str = 'Object', value = None, node = None):
         # TODO refactorizar, crear una class klass y otra var que herede de Type que es esta
         self.name = name
         self.scope = scope
@@ -48,7 +49,7 @@ class Klass():
     def getMethod(self, name: str) -> Method:
         return self.methods[name] if name in self.methods else None
         
-    def define_attribute(self, name: str, _type: str, value):
+    def define_attribute(self, name: str, _type: str, value = None):
         self.attributes[name] = Attribute(name, _type, value)
 
     def define_method(self, name: str, return_type: str, params: List[Attribute]):
@@ -61,14 +62,18 @@ class Klass():
     def get_attributes_names(self) -> List[str]:
         return list(self.attributes.keys())
     
-    def define_local(self, scope: str, name: str, _type: str, value = None):
+    def define_local(self, scope: str, name: str, level: str, _type: str, value = None):
+        if not value:
+            value = self._default_type(_type)
         # create a dictionary of dictionaries
         if scope not in self.locals:
             self.locals[scope] = {}
-        self.locals[scope][name] = Attribute(name, _type, value or self._default_type(_type))
+        if level not in self.locals[scope]:
+            self.locals[scope][level] = {}
+        self.locals[scope][level][name] = Attribute(name, _type, value or self._default_type(_type))
 
-    def get_local(self, scope: str, name: str) -> Attribute:
-        return self.locals[scope][name] if scope in self.locals and name in self.locals[scope] else None
+    def get_local(self, scope: str, level: str, name: str) -> Attribute:
+        return self.locals[scope][level][name] if scope in self.locals and level in self.locals[scope] and name in self.locals[scope][level] else None
     
     def _default_type(self, _type : str = None):
         if _type == 'Int':
@@ -78,5 +83,5 @@ class Klass():
         elif _type == 'Bool':
             return False
         else:
-            return None
+            return 'TO DEFINE'
     

@@ -4,6 +4,7 @@ from antlr4 import *
 from yapl.grammar.yaplLexer import yaplLexer
 from yapl.grammar.yaplParser import yaplParser
 from yapl.custom.YaplVisitorCustom import YaplVisitorCustom
+from yapl.custom.visitorDefinition import VisitorDefinition
 from antlr4.tree.Trees import Trees
 from yapl.custom.ErrorsListener import ErrorListener
 from termcolor import colored
@@ -45,12 +46,19 @@ def main():
     # print(Trees.toStringTree(tree, None, parser))
     # print_all_tokens(token_stream)
 
-    visitor = YaplVisitorCustom()
-    program = visitor.visit(tree)
-
+    visitor = VisitorDefinition()
+    visitor.visit(tree)
     visitor.show_variables_table()
     visitor.show_classes_table()
-    visitor.check_global_semantics()
+
+    semanticsVisitor = YaplVisitorCustom()
+    semanticsVisitor.types = visitor.types
+    semanticsVisitor.errors = visitor.errors
+    program = semanticsVisitor.visit(tree)
+
+    # visitor = YaplVisitorCustom()
+    # program = visitor.visit(tree)
+
     # Semantic erros
     if len(visitor.errors) > 0:
         print(colored(f"ERROR: The program has {len(visitor.errors)} SEMANTIC errors", 'red'))
