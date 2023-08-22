@@ -116,7 +116,10 @@ def evaluate_code(code: str):
     if len(visitor.errors) > 0:
         success = 0
         print(colored(f"ERROR: The program has {len(visitor.errors)} SEMANTIC errors", 'red'))
-        errors['semantic'] = visitor.errors
+        error_array = []
+        for i in visitor.errors:
+            error_array.append(i.message + '\n')
+        errors['semantic'] = error_array
     
     if error_listener_lexer.true or error_listener_parser.true:
         success = 0
