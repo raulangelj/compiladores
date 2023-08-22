@@ -257,7 +257,9 @@ class VisitorDefinition(yaplVisitor):
         nodo = DispatchNode(parent, methodCall, args, my_var, None)
         nodo.line = ctx.ID_VAR().symbol.line
         return nodo
-        
+    
+    def _get_return_type(self, typex):
+        return typex if typex != 'SELF_TYPE' else self.active_scope['class_name']
     
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
         name = ctx.ID_VAR().getText()
@@ -270,7 +272,7 @@ class VisitorDefinition(yaplVisitor):
             params.append(Attribute(idx, typex))
             # * Add to local variables table
             self.types[self.active_scope['class_name']].define_local(name, idx, self.active_scope['level'], typex)
-        typex = ctx.TYPE_IDENTIFIER().getText()
+        typex = self._get_return_type(ctx.TYPE_IDENTIFIER().getText())
         nodo = MethodNode(name, params, typex, None)
         # * check if method is defined
         if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].getMethod(name):

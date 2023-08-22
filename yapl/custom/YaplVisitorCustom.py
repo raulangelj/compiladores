@@ -173,7 +173,9 @@ class YaplVisitorCustom(yaplVisitor):
     
     def visitWhile(self, ctx:yaplParser.WhileContext):
         condition = self.visit(ctx.expr(0))
+        self.active_scope['level'] += 1
         expression = self.visit(ctx.expr(1))
+        self.active_scope['level'] -= 1
         nodo = WhileNode(condition, expression)
         nodo.line = ctx.WHILE().symbol.line
         nodo.type = 'Object'
@@ -200,8 +202,11 @@ class YaplVisitorCustom(yaplVisitor):
     
     def visitIf(self, ctx:yaplParser.IfContext):
         condition = self.visit(ctx.expr(0))
+        self.active_scope['level'] += 1
         then_body = self.visit(ctx.expr(1))
+        self.active_scope['level'] += 1
         else_body = self.visit(ctx.expr(2))
+        self.active_scope['level'] -= 2
         nodo = IfNode(condition, then_body, else_body)
         nodo.line = ctx.IF().symbol.line
         nodo.type = self._get_super_type([then_body, else_body])
@@ -330,11 +335,11 @@ class YaplVisitorCustom(yaplVisitor):
         # * Check method validation
         my_var_type = my_var.type
         if parent:
-            # * Check if type is the parent of the var
-            if self.types[self.active_scope['class_name']].inheritance != parent:
-                error = ErrorNode()
-                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} is not defined in {parent}"
-                return self._extracted_from_visitMethodCall_22(error, nodo)
+            # # * Check if type is the parent of the var
+            # if self.types[parent].inheritance != parent:
+            #     error = ErrorNode()
+            #     error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Method {methodCall} is not defined in {parent}"
+            #     return self._extracted_from_visitMethodCall_22(error, nodo)
             # * check if method is defined
             if parent not in self.types or not self.types[parent].getMethod(methodCall):
                 return self._extracted_from_visitMethodCall_27(ctx, methodCall, nodo, my_var_type)
@@ -510,9 +515,22 @@ class YaplVisitorCustom(yaplVisitor):
                 nodo.type = 'ERROR'
                 return nodo
             if typex != nodo.value.type:
-                error = ErrorNode()
-                error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Cannot assign {expression.type} to {typex}"
-                self.errors.append(error)
+                # error = ErrorNode()
+                # error.message = f"ERROR on line {ctx.ID_VAR().symbol.line}: Cannot assign {expression.type} to {typex}"
+                # self.errors.append(error)
+                # * Check if one of the parent is the same type
+                    valid_type = False
+                    parent = self.types[nodo.value.type].inheritance if nodo.value.type in self.types else None
+                    while parent and parent != 'Object':
+                        if parent == self._get_variable(nodo.idx).type:
+                            valid_type = True
+                            break
+                        parent = self.types[parent].inheritance
+                    if not valid_type:
+                        error = ErrorNode()
+                        error.message = f"ERROR on line {nodo.line}:Cannot assign {nodo.value.type} to {self._get_variable(nodo.idx).type}"
+                        self.errors.append(error)
+                        return 'ERROR'
             else:
                 self.types[self.active_scope['class_name']].define_attribute(idx, typex, nodo.value.token)
         return nodo
@@ -556,10 +574,17 @@ class YaplVisitorCustom(yaplVisitor):
     def _is_defined(self, name: str, scope: ScopeType) -> bool:
         isglobal_val = scope['class_name'] in self.types and self.types[scope['class_name']].get_attribute(name) is not None
         islocal_var = False
-        if scope['method_name'] is not None:
-            classVar = self.types[scope['class_name']]
-            level = self.active_scope['level']
-            islocal_var = classVar.get_local(scope['method_name'], level, name) is not None
+        # if scope['method_name'] is not None:
+        #     classVar = self.types[scope['class_name']]
+        #     level = self.active_scope['level']
+        #     islocal_var = classVar.get_local(scope['method_name'], level, name) is not None
+        # * check if the variabel is defined in the current 'class', 'method' and all the levels of the scope starting from the current level to 0
+        for i in range(scope['level'], -1, -1):
+            if scope['method_name'] is not None:
+                classVar = self.types[scope['class_name']]
+                islocal_var = classVar.get_local(scope['method_name'], i, name) is not None
+            if islocal_var:
+                break
         return isglobal_val or islocal_var
     
     def _addSimbolToTable(self, scope: ScopeType, node: Node) -> str or None:
@@ -600,22 +625,39 @@ class YaplVisitorCustom(yaplVisitor):
                         return 'ERROR'
                 # * CHECK if expression is same type
                 if self._get_variable(node.idx).type != node.value.type:
-                    error = ErrorNode()
-                    error.message = f"ERROR on line {node.line}:Cannot assign {node.value.type} to {self._get_variable(node.idx).type}"
-                    self.errors.append(error)
-                    return 'ERROR'
+                    # * Check if one of the parent is the same type
+                    valid_type = False
+                    parent = self.types[node.value.type].inheritance if node.value.type in self.types else None
+                    while parent and parent != 'Object':
+                        if parent == self._get_variable(node.idx).type:
+                            valid_type = True
+                            break
+                        parent = self.types[parent].inheritance
+                    if not valid_type:
+                        error = ErrorNode()
+                        error.message = f"ERROR on line {node.line}:Cannot assign {node.value.type} to {self._get_variable(node.idx).type}"
+                        self.errors.append(error)
+                        return 'ERROR'
                 value = node.value.token if node.value else None
                 self._get_variable(node.idx).value = value
         elif isinstance(node, BlockNode):
             for s in node.statements:
-                new_scope = { 'class_name': scope['class_name'], 'method_name': scope['method_name'], 'level': 0 }
-                self._addSimbolToTable(new_scope, s)
+                # new_scope = { 'class_name': scope['class_name'], 'method_name': scope['method_name'], 'level': 0 }
+                self._addSimbolToTable(self.active_scope, s)
         return None
     
     def _get_variable(self, name: str) -> Attribute or None:
+        # if self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], self.active_scope['level'], name):
+        #     return self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], self.active_scope['level'], name)
+        # elif self.types[self.active_scope['class_name']].get_attribute(name):
+        #     return self.types[self.active_scope['class_name']].get_attribute(name)
+        # return the variable from the current 'class', 'method' and all the levels of the scope starting from the current level to 0
         if self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], self.active_scope['level'], name):
             return self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], self.active_scope['level'], name)
-        elif self.types[self.active_scope['class_name']].get_attribute(name):
+        for i in range(self.active_scope['level'], -1, -1):
+            if self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], i, name):
+                return self.types[self.active_scope['class_name']].get_local(self.active_scope['method_name'], i, name)
+        if self.types[self.active_scope['class_name']].get_attribute(name):
             return self.types[self.active_scope['class_name']].get_attribute(name)
         return None
 
