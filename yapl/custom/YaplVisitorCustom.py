@@ -416,7 +416,7 @@ class YaplVisitorCustom(yaplVisitor):
         # # * Add to the table for recursive calls
         # self.types[self.active_scope['class_name']].define_method(name, typex, params)
         body = self.visit(ctx.expr())
-        self._addSimbolToTable(self.active_scope, body)
+        # self._addSimbolToTable(self.active_scope, body)
         # * Validate signature if method is inherited
         if self.active_scope['class_name'] in self.types and self.types[self.active_scope['class_name']].inheritance:
             parent = self.types[self.active_scope['class_name']].inheritance

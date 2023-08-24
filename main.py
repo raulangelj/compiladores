@@ -56,6 +56,10 @@ def main():
     semanticsVisitor.errors = visitor.errors
     program = semanticsVisitor.visit(tree)
 
+    print(colored("The program is correct", 'green'))
+    semanticsVisitor.show_variables_table()
+    semanticsVisitor.show_classes_table()
+
     # visitor = YaplVisitorCustom()
     # program = visitor.visit(tree)
 
@@ -68,6 +72,10 @@ def main():
     
     if error_listener_lexer.true or error_listener_parser.true:
         print(colored("ERROR: The program has LEXIC errors", 'red'))
+        for error in error_listener_lexer.errors:
+            print(colored(error, 'red'))
+        for error in error_listener_parser.errors:
+            print(colored(error, 'red'))
         exit(1)
 
     # display parse tree in GUI
