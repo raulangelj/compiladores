@@ -1,0 +1,30 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "compiler",
+      "type": "python",
+      "request": "launch",
+      "program": "main.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": [
+        // "./tests/list.cl"
+        // "./tests/primes.cl"
+        // "./tests/hello_world.cl"
+        // "./tests/arith.cl"
+        // "./tests/recur.cl"
+        "./tests/cool.cl"
+        // "./tests/shadow_variable_global_local.cl"
+        // "./tests/if_and_while.cl"
+        // "./tests/casteo_bool_a_int.cl"
+        // "./tests/firma_de_parametros.cl"
+        // "./tests/paso_de_parametros_firma_retorno.cl"
+        // "./tests/coincidencia_retorno.cl"
+      ]
+    }
+  ]
+}

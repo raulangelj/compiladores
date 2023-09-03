@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/
 lib64/
 parts/
 sdist/
@@ -151,6 +151,9 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# antlr4 generated files
+.antlr/
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
