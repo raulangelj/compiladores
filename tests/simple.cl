@@ -1,18 +1,23 @@
 class A {
   a: Int <- 0;
   b: Int <- 0;
-  c: Bool <- true;
+  c: Bool;
 
-  sum(m: Int): Int {
+  sum(d: Int): Int {
     {
-      if (c) then {
-        a + b;
+      if  c then {
+        a <- a + d;
+        b <- b + 1;
       } else {
-        a - b;
+        a <- a + d;
+        b <- b + 2;
       }
-      while (a < b) {
+      fi;
+      while (c) loop {
         a <- a + 1;
-      }
+        b <- b + 1;
+        d <- d - 1;
+      } pool;
       a;
     }
   };
@@ -25,7 +30,7 @@ class B {
 
 class Main inherits IO {
   a: Int <- 0;
-  b: new A;
+  b: A;
 
   main(): Object {
     a <- 1
