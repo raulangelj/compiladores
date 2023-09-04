@@ -1,0 +1,3 @@
+INT_SIZE = 4
+CHAR_SIZE = 1
+BOOL_SIZE = 1
