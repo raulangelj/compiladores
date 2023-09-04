@@ -1,19 +1,19 @@
 class A {
   a: Int <- 0;
   b: Int <- 0;
-  c: Bool;
+  c: Bool <- true;
 
-  sum(c: Int): Int {
+  sum(m: Int): Int {
     {
-      if (c) {
-        a + b
+      if (c) then {
+        a + b;
       } else {
-        a - b
+        a - b;
       }
       while (a < b) {
-        a <- a + 1
+        a <- a + 1;
       }
-      a
+      a;
     }
   };
 };
@@ -21,7 +21,7 @@ class A {
 class B { 
   a: B;
   aa: A;
-}
+};
 
 class Main inherits IO {
   a: Int <- 0;
