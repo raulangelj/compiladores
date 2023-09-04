@@ -1,5 +1,6 @@
 from typing import List
 from yapl.custom.models.Types import Attribute
+from Constant import *
 class ErrorNode():
     def __init__(self):
         self.type = 'Error'
@@ -13,6 +14,7 @@ class Node():
         self.type = None
         self.token = ''
         self.line = None
+        self.width = 0
 
 class BiOperationNode(Node):
     def __init__(self, left, right):
@@ -84,12 +86,14 @@ class IntegerNode(Node):
         super().__init__()
         self.token = token
         self.type = 'Int'
+        self.width = INT_SIZE
 
 class StringNode(Node):
     def __init__(self, token):
         super().__init__()
         self.token = token
         self.type = 'String'
+        self.width = CHAR_SIZE * len(token)
 
 class PlusNode(BiOperationNode):
     def __init__(self, left, right):
@@ -153,6 +157,7 @@ class BooleanNode(Node):
         self.token = token
         self.operator = '!'
         self.type = 'Bool'
+        self.width = BOOL_SIZE
 
 class IdNode(Node):
     def __init__(self, token):
