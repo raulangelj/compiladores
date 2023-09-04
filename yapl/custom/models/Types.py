@@ -2,20 +2,22 @@ from typing import List, Literal, TypedDict
 
 # every class is a type
 class Attribute():
-    def __init__(self, name: str, _type: str, value = None):
+    def __init__(self, name: str, _type: str, value = None, width = 0):
         self.name = name
         self.type = _type
         self.value = value
+        self.width = width
 
     def __eq__(self, __value: object) -> bool:
         return self.name == __value.name and self.type == __value.type
 
 
 class Method():
-    def __init__(self, name: str, return_type: str, params: List[Attribute]):
+    def __init__(self, name: str, return_type: str, params: List[Attribute], width = 0):
         self.name = name
         self.return_type = return_type
         self.params = params
+        self.width = width
 
     def define_local(self, name: str, _type: str, value = None):
         self.locals[name] = Attribute(name, _type, value)
@@ -29,7 +31,7 @@ class ScopeType(TypedDict):
     level: int
 
 class Klass():
-    def __init__(self, name: str, scope: ScopeType = None, _type: Literal['class', 'var'] = 'class', inheritance: str = 'Object', value = None, node = None):
+    def __init__(self, name: str, scope: ScopeType = None, _type: Literal['class', 'var'] = 'class', inheritance: str = 'Object', value = None, node = None, width = 8):
         # TODO refactorizar, crear una class klass y otra var que herede de Type que es esta
         self.name = name
         self.scope = scope
@@ -40,6 +42,7 @@ class Klass():
         self.attributes = {} # ! only for class
         self.methods = {} #! only for class
         self.locals = {}
+        self.width = width
         if _type == 'var':
             self.value = value if value else self._default_type(inheritance)
 
@@ -49,12 +52,12 @@ class Klass():
     def getMethod(self, name: str) -> Method:
         return self.methods[name] if name in self.methods else None
         
-    def define_attribute(self, name: str, _type: str, value = None):
-        self.attributes[name] = Attribute(name, _type, value)
+    def define_attribute(self, name: str, _type: str, value = None, width = 0):
+        self.attributes[name] = Attribute(name, _type, value, width)
 
-    def define_method(self, name: str, return_type: str, params: List[Attribute]):
+    def define_method(self, name: str, return_type: str, params: List[Attribute], width = 0):
         # params_list = [Attribute(param[0], param[1]) for param in params]
-        self.methods[name] = Method(name, return_type, params)
+        self.methods[name] = Method(name, return_type, params, width)
 
     def get_methods_names(self) -> List[str]:
         return list(self.methods.keys())
@@ -62,7 +65,7 @@ class Klass():
     def get_attributes_names(self) -> List[str]:
         return list(self.attributes.keys())
     
-    def define_local(self, scope: str, name: str, level: str, _type: str, value = None):
+    def define_local(self, scope: str, name: str, level: str, _type: str, value = None, width = 0):
         if not value:
             value = self._default_type(_type)
         # create a dictionary of dictionaries
@@ -70,7 +73,7 @@ class Klass():
             self.locals[scope] = {}
         if level not in self.locals[scope]:
             self.locals[scope][level] = {}
-        self.locals[scope][level][name] = Attribute(name, _type, value or self._default_type(_type))
+        self.locals[scope][level][name] = Attribute(name, _type, value or self._default_type(_type), width)
 
     def get_local(self, scope: str, level: str, name: str) -> Attribute:
         return self.locals[scope][level][name] if scope in self.locals and level in self.locals[scope] and name in self.locals[scope][level] else None

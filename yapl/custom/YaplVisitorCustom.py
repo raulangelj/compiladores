@@ -532,17 +532,20 @@ class YaplVisitorCustom(yaplVisitor):
                         self.errors.append(error)
                         return 'ERROR'
             else:
-                self.types[self.active_scope['class_name']].define_attribute(idx, typex, nodo.value.token)
+                class_typex = self.types.get(typex)
+                width = class_typex.width if class_typex else 0
+                self.types[self.active_scope['class_name']].define_attribute(idx, typex, nodo.value.token, width)
         return nodo
     
     def show_classes_table(self):
-        headers = ['Name' , 'Parent', 'Attributes', 'Methods']
+        headers = ['Name' , 'Parent', 'Attributes', 'Methods', 'Width']
         table = [
             [
                 t,
                 self.types[t].inheritance,
                 self.types[t].get_attributes_names(),
                 self.types[t].get_methods_names(),
+                self.types[t].width
             ]
             for t in self.types
             if self.types[t].type == 'class'
@@ -551,19 +554,19 @@ class YaplVisitorCustom(yaplVisitor):
         print(tabulate(table, headers, tablefmt="fancy_grid"))
     
     def show_variables_table(self):
-        headers = ['Name', 'Type', 'Scope', 'Value']
+        headers = ['Name', 'Type', 'Scope', 'Value', 'Width']
         for c in self.types:
             print(f"\n========== {c} Variables Table ==========\n")
             table = []
             for t in self.types[c].attributes:
                 var = self.types[c].get_attribute(t)
-                table.append([t, var.type, 'GLOBAL', var.value])
+                table.append([t, var.type, 'GLOBAL', var.value, var.width])
             # locals
             for l in self.types[c].locals:
                 for level in self.types[c].locals[l]:
                     for t in self.types[c].locals[l][level]:
                         var = self.types[c].get_local(l, level, t)
-                        table.append([t, var.type, f'LOCAL: {l} - LEVEL: {level}', var.value])
+                        table.append([t, var.type, f'LOCAL: {l} - LEVEL: {level}', var.value, var.width])
             print(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def _add_error(self, message: str):
