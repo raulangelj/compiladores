@@ -12,8 +12,8 @@ class VisitorDefinition(yaplVisitor):
         self.errors = []
         self._set_default_types()
         self.active_scope: ScopeType = { 'class_name': None, 'method_name': None, 'level': 0 }
-        self.vars_used = set([])
-        self.active_function_width = 0
+        self.active_class_offset = 0
+        self.local_offset = 0
 
     def _set_default_types(self):
         # Defaults types
@@ -53,23 +53,17 @@ class VisitorDefinition(yaplVisitor):
         nodo = IntegerNode(ctx.INT_VAR().getText())
         nodo.line = ctx.INT_VAR().symbol.line
         # sumar width de la funcion
-        # self.active_function_width += INT_SIZE
         return nodo
     
     def visitString(self, ctx:yaplParser.StringContext):
         nodo = StringNode(ctx.STR_VAR().getText())
         nodo.line = ctx.STR_VAR().symbol.line
         # sumar width de la funcion
-        # self.active_function_width += CHAR_SIZE * len(nodo.token)
         return nodo
 
     def visitPlus(self, ctx:yaplParser.PlusContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        # if left.type == 'Id':
-        #     self.vars_used.add(left.token)
-        # if right.type == 'Id':
-        #     self.vars_used.add(right.token)
         nodo = PlusNode(left, right)
         nodo.line = ctx.PLUS().symbol.line
         nodo.token = f'{ctx.expr(0).getText()}+{ctx.expr(1).getText()}'
@@ -79,10 +73,6 @@ class VisitorDefinition(yaplVisitor):
     def visitMinus(self, ctx:yaplParser.MinusContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        # if left.type == 'Id':
-        #     self.vars_used.add(left.token)
-        # if right.type == 'Id':
-        #     self.vars_used.add(right.token)
         nodo = MinusNode(left, right)
         nodo.line = ctx.MINUS().symbol.line
         nodo.token = f'{ctx.expr(0).getText()}-{ctx.expr(1).getText()}'
@@ -92,10 +82,6 @@ class VisitorDefinition(yaplVisitor):
     def visitMult(self, ctx:yaplParser.MultContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        # if left.type == 'Id':
-        #     self.vars_used.add(left.token)
-        # if right.type == 'Id':
-        #     self.vars_used.add(right.token)
         node = MultNode(left, right)
         node.line = ctx.MULT().symbol.line
         node.token = f'{ctx.expr(0).getText()}*{ctx.expr(1).getText()}'
@@ -105,10 +91,6 @@ class VisitorDefinition(yaplVisitor):
     def visitDiv(self, ctx: yaplParser.DivContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        # if left.type == 'Id':
-        #     self.vars_used.add(left.token)
-        # if right.type == 'Id':
-        #     self.vars_used.add(right.token)
         nodo = DivNode(left, right)
         nodo.line = ctx.DIV().symbol.line
         nodo.token = f'{ctx.expr(0).getText()}/{ctx.expr(1).getText()}'
@@ -118,22 +100,16 @@ class VisitorDefinition(yaplVisitor):
     def visitTrue(self, ctx: yaplParser.TrueContext):
         nodo = BooleanNode(ctx.TRUE().getText())
         nodo.line = ctx.TRUE().symbol.line
-        self.active_function_width += BOOL_SIZE
         return nodo
     
     def visitFalse(self, ctx: yaplParser.FalseContext):
         nodo = BooleanNode(ctx.FALSE().getText())
         nodo.line = ctx.FALSE().symbol.line
-        self.active_function_width += BOOL_SIZE
         return nodo
     
     def visitLess(self, ctx: yaplParser.LessContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        # if left.type == 'Id':
-        #     self.vars_used.add(left.token)
-        # if right.type == 'Id':
-        #     self.vars_used.add(right.token)
         nodo = LessThanNode(left, right)
         nodo.line = ctx.LESS_THAN().symbol.line
         nodo.token =  f'{ctx.expr(0).getText()}<{ctx.expr(1).getText()}'
@@ -143,10 +119,6 @@ class VisitorDefinition(yaplVisitor):
     def visitLess_equal(self, ctx: yaplParser.Less_equalContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        # if left.type == 'Id':
-        #     self.vars_used.add(left.token)
-        # if right.type == 'Id':
-        #     self.vars_used.add(right.token)
         nodo = LessEqualNode(left, right)
         nodo.line = ctx.LESS_EQUAL().symbol.line
         nodo.token = f'{ctx.expr(0).getText()}<={ctx.expr(1).getText()}'
@@ -156,10 +128,6 @@ class VisitorDefinition(yaplVisitor):
     def visitEqual(self, ctx: yaplParser.EqualContext):
         left = self.visit(ctx.expr(0))
         right = self.visit(ctx.expr(1))
-        # if left.type == 'Id':
-        #     self.vars_used.add(left.token)
-        # if right.type == 'Id':
-        #     self.vars_used.add(right.token)
         nodo = EqualNode(left, right)
         nodo.line = ctx.EQUAL().symbol.line
         nodo.token = f'{ctx.expr(0).getText()}={ctx.expr(1).getText()}'
@@ -214,10 +182,6 @@ class VisitorDefinition(yaplVisitor):
     
     def visitWhile(self, ctx:yaplParser.WhileContext):
         condition = self.visit(ctx.expr(0))
-        # if condition.type == 'Id':
-        #     self.vars_used.add(condition.token)
-        # if condition.type == 'Int':
-        #     self.active_function_width += INT_SIZE
         self.active_scope['level'] += 1
         expression = self.visit(ctx.expr(1))
         self.active_scope['level'] -= 1
@@ -228,10 +192,6 @@ class VisitorDefinition(yaplVisitor):
     
     def visitIf(self, ctx:yaplParser.IfContext):
         condition = self.visit(ctx.expr(0))
-        # if condition.type == 'Id':
-        #     self.vars_used.add(condition.token)
-        # if condition.type == 'Int':
-        #     self.active_function_width += INT_SIZE
         self.active_scope['level'] += 1
         then_body = self.visit(ctx.expr(1))
         self.active_scope['level'] += 1
@@ -244,9 +204,6 @@ class VisitorDefinition(yaplVisitor):
     
     def visitFunctionCall(self, ctx:yaplParser.FunctionCallContext):
         params = [self.visit(ctx.expr(i)) for i in range(len(ctx.expr()))]
-        for p in params:
-            if p.type == 'Id':
-                self.vars_used.add(p.token)
         method = ctx.ID_VAR().getText()
         nodo = MethodCallNode('self', method, params)
         nodo.line = ctx.ID_VAR().symbol.line
@@ -261,12 +218,6 @@ class VisitorDefinition(yaplVisitor):
         expression = self.visit(ctx.expr()) if ctx.expr() is not None else None
         nodo = AttrNode(idx, typex, expression)
         nodo.line = ctx.ID_VAR().symbol.line
-        if typex == 'Int':
-            self.active_function_width += INT_SIZE
-        elif typex == 'String':
-            self.active_function_width += CHAR_SIZE * len(expression.token)
-        elif typex == 'Bool':
-            self.active_function_width += BOOL_SIZE
         # TODO AGREGAR TAMAÑO SI ES OBJETO
         return nodo
         
@@ -288,7 +239,8 @@ class VisitorDefinition(yaplVisitor):
             elif p.type == 'Bool':
                 width = BOOL_SIZE
             # * Add to local variables table
-            self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], p.idx, self.active_scope['level'], p.type, width=width)
+            self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], p.idx, self.active_scope['level'], p.type, width=width, offset=self.local_offset)
+            self.local_offset += width
         body = self.visit(ctx.expr())
         # self._addSimbolToTable(self.active_scope, body)
         nodo = LetNode(params, body)
@@ -313,8 +265,6 @@ class VisitorDefinition(yaplVisitor):
         # ( NEW Animal ).say_hello()
         # myPet@Animal.say_hello();
         my_var = self.visit(ctx.expr(0))
-        if my_var == 'Id':
-            self.vars_used.add(my_var.token)
         methodCall = ctx.ID_VAR().getText()
         args = [self.visit(ctx.expr(i)) for i in range(1, len(ctx.expr()))]
         parent = ctx.TYPE_IDENTIFIER().getText() if ctx.TYPE_IDENTIFIER() is not None else None
@@ -326,8 +276,7 @@ class VisitorDefinition(yaplVisitor):
         return typex if typex != 'SELF_TYPE' else self.active_scope['class_name']
     
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
-        self.vars_used = set([])
-        self.active_function_width = 0
+        self.local_offset = 0
         name = ctx.ID_VAR().getText()
         self.active_scope['method_name'] = name
         params = []
@@ -342,7 +291,8 @@ class VisitorDefinition(yaplVisitor):
                 width = BOOL_SIZE
             params.append(Attribute(idx, typex))
             # * Add to local variables table
-            self.types[self.active_scope['class_name']].define_local(name, idx, self.active_scope['level'], typex, width=width)
+            self.types[self.active_scope['class_name']].define_local(name, idx, self.active_scope['level'], typex, width=width, offset=self.local_offset)
+            self.local_offset += width
         typex = self._get_return_type(ctx.TYPE_IDENTIFIER().getText())
         nodo = MethodNode(name, params, typex, None)
         # * check if method is defined
@@ -357,9 +307,7 @@ class VisitorDefinition(yaplVisitor):
         self.types[self.active_scope['class_name']].getMethod(name).width = body.width
         # self._addSimbolToTable(self.active_scope, body)
         nodo.body = body
-        # for item in self.vars_used:
         #     self.types[self.active_scope['class_name']].getMethod(name).width += self.types[self.active_scope['class_name']].get_attribute(item).width
-        # self.types[self.active_scope['class_name']].getMethod(name).width += self.active_function_width
         # el width de la funcion seria la suma de las variables locales
         width = 0
         for l in self.types[self.active_scope['class_name']].locals:
@@ -389,6 +337,7 @@ class VisitorDefinition(yaplVisitor):
 
     
     def visitClasss(self, ctx:yaplParser.ClasssContext):
+        self.active_class_offset = 0
         name = ctx.TYPE_IDENTIFIER(0).getText()
         parent = ctx.TYPE_IDENTIFIER(1).getText() if ctx.TYPE_IDENTIFIER(1) is not None else 'Object'
         # * add class to table if not exists
@@ -419,7 +368,6 @@ class VisitorDefinition(yaplVisitor):
         typex = ctx.TYPE_IDENTIFIER().getText()
         nodo = NewNode(typex)
         nodo.line = ctx.NEW().symbol.line
-        self.active_function_width += self.types[typex].width
         return nodo
 
     def visitAttr(self, ctx:yaplParser.AttrContext):
@@ -442,7 +390,9 @@ class VisitorDefinition(yaplVisitor):
         # get type of asign expression
         class_typex = self.types.get(typex)
         width = class_typex.width
-        class_type.define_attribute(idx, typex, width=width)
+        class_type.define_attribute(idx, typex, width=width, offset=self.active_class_offset)
+        # Add offset to class
+        self.active_class_offset += width
         # if expression:
         #     # Check if expression is same type
         #     if typex != expression.type:

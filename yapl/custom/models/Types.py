@@ -2,11 +2,12 @@ from typing import List, Literal, TypedDict
 
 # every class is a type
 class Attribute():
-    def __init__(self, name: str, _type: str, value = None, width = 0):
+    def __init__(self, name: str, _type: str, value = None, width = 0, offset = 0):
         self.name = name
         self.type = _type
         self.value = value
         self.width = width
+        self.offset = offset
 
     def __eq__(self, __value: object) -> bool:
         return self.name == __value.name and self.type == __value.type
@@ -52,8 +53,8 @@ class Klass():
     def getMethod(self, name: str) -> Method:
         return self.methods[name] if name in self.methods else None
         
-    def define_attribute(self, name: str, _type: str, value = None, width = 0):
-        self.attributes[name] = Attribute(name, _type, value, width)
+    def define_attribute(self, name: str, _type: str, value = None, width = 0, offset = 0):
+        self.attributes[name] = Attribute(name, _type, value, width, offset)
 
     def define_method(self, name: str, return_type: str, params: List[Attribute], width = 0):
         # params_list = [Attribute(param[0], param[1]) for param in params]
@@ -65,7 +66,7 @@ class Klass():
     def get_attributes_names(self) -> List[str]:
         return list(self.attributes.keys())
     
-    def define_local(self, scope: str, name: str, level: str, _type: str, value = None, width = 0):
+    def define_local(self, scope: str, name: str, level: str, _type: str, value = None, width = 0, offset = 0):
         if not value:
             value = self._default_type(_type)
         # create a dictionary of dictionaries
@@ -73,7 +74,7 @@ class Klass():
             self.locals[scope] = {}
         if level not in self.locals[scope]:
             self.locals[scope][level] = {}
-        self.locals[scope][level][name] = Attribute(name, _type, value or self._default_type(_type), width)
+        self.locals[scope][level][name] = Attribute(name, _type, value or self._default_type(_type), width, offset)
 
     def get_local(self, scope: str, level: str, name: str) -> Attribute:
         return self.locals[scope][level][name] if scope in self.locals and level in self.locals[scope] and name in self.locals[scope][level] else None
