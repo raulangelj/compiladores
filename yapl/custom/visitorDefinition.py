@@ -311,9 +311,10 @@ class VisitorDefinition(yaplVisitor):
         # el width de la funcion seria la suma de las variables locales
         width = 0
         for l in self.types[self.active_scope['class_name']].locals:
-            for level in self.types[self.active_scope['class_name']].locals[l]:
-                for t in self.types[self.active_scope['class_name']].locals[l][level]:
-                    width += self.types[self.active_scope['class_name']].locals[l][level][t].width
+            if l == name:
+                for level in self.types[self.active_scope['class_name']].locals[l]:
+                    for t in self.types[self.active_scope['class_name']].locals[l][level]:
+                        width += self.types[self.active_scope['class_name']].locals[l][level][t].width
         self.types[self.active_scope['class_name']].getMethod(name).width = width
         nodo.line = ctx.ID_VAR().symbol.line
         nodo.type = typex
@@ -408,13 +409,14 @@ class VisitorDefinition(yaplVisitor):
 
     
     def show_classes_table(self):
-        headers = ['Name' , 'Parent', 'Attributes', 'Methods']
+        headers = ['Name' , 'Parent', 'Attributes', 'Methods', 'Width']
         table = [
             [
                 t,
                 self.types[t].inheritance,
                 self.types[t].get_attributes_names(),
                 self.types[t].get_methods_names(),
+                self.types[t].width
             ]
             for t in self.types
             if self.types[t].type == 'class'
@@ -423,19 +425,19 @@ class VisitorDefinition(yaplVisitor):
         print(tabulate(table, headers, tablefmt="fancy_grid"))
     
     def show_variables_table(self):
-        headers = ['Name', 'Type', 'Scope', 'Value']
+        headers = ['Name', 'Type', 'Scope', 'Value', 'Width', 'Offset']
         for c in self.types:
             print(f"\n========== {c} Variables Table ==========\n")
             table = []
             for t in self.types[c].attributes:
                 var = self.types[c].get_attribute(t)
-                table.append([t, var.type, 'GLOBAL', var.value])
+                table.append([t, var.type, 'GLOBAL', var.value, var.width, var.offset])
             # locals
             for l in self.types[c].locals:
                 for level in self.types[c].locals[l]:
                     for t in self.types[c].locals[l][level]:
                         var = self.types[c].get_local(l, level, t)
-                        table.append([t, var.type, f'LOCAL: {l} - LEVEL: {level}', var.value])
+                        table.append([t, var.type, f'LOCAL: {l} - LEVEL: {level}', var.value, var.width, var.offset])
             print(tabulate(table, headers, tablefmt="fancy_grid"))
 
     def check_global_semantics(self):
