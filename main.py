@@ -5,6 +5,7 @@ from yapl.grammar.yaplLexer import yaplLexer
 from yapl.grammar.yaplParser import yaplParser
 from yapl.custom.YaplVisitorCustom import YaplVisitorCustom
 from yapl.custom.visitorDefinition import VisitorDefinition
+from yapl.custom.IntemediateVisitor import IntermediateVisitor
 from antlr4.tree.Trees import Trees
 from yapl.custom.ErrorsListener import ErrorListener
 from termcolor import colored
@@ -77,6 +78,11 @@ def main():
         for error in error_listener_parser.errors:
             print(colored(error, 'red'))
         exit(1)
+
+    intermediateVisitor = IntermediateVisitor()
+    intermediateVisitor.types = semanticsVisitor.types
+    intermediateVisitor.visit(tree)
+    intermediateVisitor.print_intermediate()
 
     # display parse tree in GUI
     # TODO: add flag -gui
