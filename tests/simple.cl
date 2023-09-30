@@ -11,6 +11,9 @@ class Main inherits IO {
       } else {
         b <- 3;
       } fi;
+      while (a < 10) loop {
+        a <- a + 1;
+      } pool;
     }
   };
 };
