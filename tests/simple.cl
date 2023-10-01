@@ -3,6 +3,14 @@ class Main inherits IO {
   b: Int <- 2 + a * 3;
   c: Bool <- true;
 
+  aa(): Bool {
+    {
+      while (a <= 0) loop {
+        a <- a - 1;
+      } pool;
+    }
+  };
+
   main(): Object {
     {
       a <- 1 * 3 + a;
@@ -11,9 +19,6 @@ class Main inherits IO {
       } else {
         b <- 3;
       } fi;
-      while (a < 10) loop {
-        a <- a + 1;
-      } pool;
     }
   };
 };

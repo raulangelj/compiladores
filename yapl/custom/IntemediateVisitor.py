@@ -199,6 +199,21 @@ class IntermediateVisitor(yaplVisitor):
         nodo.line = ctx.LESS_EQUAL().symbol.line
         nodo.token = f'{ctx.expr(0).getText()}<={ctx.expr(1).getText()}'
         nodo.type = 'Bool'
+        # * Generate intermediate code
+        new_right = (
+            right.token
+            if isinstance(right, (IntegerNode, IdNode))
+            else self.get_active_temp()
+        )
+        new_left = (
+            left.token
+            if isinstance(left, (IntegerNode, IdNode))
+            else self.get_active_temp()
+        )
+        if self.active_scope['method_name']:
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '<='))
+        else:
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '<='))
         return nodo
     
     def visitEqual(self, ctx: yaplParser.EqualContext):
@@ -208,6 +223,21 @@ class IntermediateVisitor(yaplVisitor):
         nodo.line = ctx.EQUAL().symbol.line
         nodo.token = f'{ctx.expr(0).getText()}={ctx.expr(1).getText()}'
         nodo.type = 'Bool'
+        # * Generate intermediate code
+        new_right = (
+            right.token
+            if isinstance(right, (IntegerNode, IdNode))
+            else self.get_active_temp()
+        )
+        new_left = (
+            left.token
+            if isinstance(left, (IntegerNode, IdNode))
+            else self.get_active_temp()
+        )
+        if self.active_scope['method_name']:
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '=='))
+        else:
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '=='))
         return nodo
     
     def visitNot(self, ctx: yaplParser.NotContext):
@@ -262,13 +292,22 @@ class IntermediateVisitor(yaplVisitor):
     
     def visitWhile(self, ctx:yaplParser.WhileContext):
         condition = self.visit(ctx.expr(0))
+        temp_while = self.get_active_temp()
+        
+        # TODO REVISAR QUE FALTA
+        # * Generar codigo intermedio
+        while_label = self.generate_label()
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=while_label))
         self.active_scope['level'] += 1
         expression = self.visit(ctx.expr(1))
         self.active_scope['level'] -= 1
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{while_label}'))
+
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, temp_while, None, f'Goto {while_label.result}', 'If'))
+
         nodo = WhileNode(condition, expression)
         nodo.line = ctx.WHILE().symbol.line
         nodo.type = 'Object'
-        # TODO REVISAR QUE FALTA
         return nodo
     
     def visitIf(self, ctx:yaplParser.IfContext):
