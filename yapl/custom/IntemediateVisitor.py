@@ -21,6 +21,10 @@ class IntermediateVisitor(yaplVisitor):
         if type == 'If':
             self.actual_label += 1
             return Quadruple(op, left, right, f'L{self.actual_label}', type)
+        if type == 'PARAM':
+            return Quadruple(None, None, None, f'{right}', type)
+        if type == 'Function':
+            return Quadruple(None, left, right, f'{self.actual_label}', type)
         if type == 'Goto':
             return Quadruple(op, left, right, f'L{self.actual_label}', type)
         self.actual_temp += 1
@@ -269,7 +273,7 @@ class IntermediateVisitor(yaplVisitor):
         if not expression or isinstance(expression, (IntegerNode, StringNode, BooleanNode)):
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, expression.token, 'Assign'))
         else:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, self.get_active_temp(), 'Assign'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, 'R', 'Assign'))
         return nodo
     
     def visitBlock(self, ctx:yaplParser.BlockContext):
@@ -347,6 +351,9 @@ class IntermediateVisitor(yaplVisitor):
         nodo.token = f'{method}({", ".join([p.token for p in params])})'
         method_params = self.types[self.active_scope['class_name']].getMethod(method).params
         # TODO REVISAR QUE FALTA
+        for param in params:
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(method, len(params), None, 'Function'))
         return nodo
     
     def visitAttributesDeclaration(self, ctx:yaplParser.AttributesDeclarationContext):
@@ -363,7 +370,7 @@ class IntermediateVisitor(yaplVisitor):
             p = self.visit(ctx.var_typescript(i))
             params.append(p)
         body = self.visit(ctx.expr())
-        self._addSimbolToTable(self.active_scope, body)
+        # self._addSimbolToTable(self.active_scope, body)
         nodo = LetNode(params, body)
         nodo.line = ctx.LET().symbol.line
         nodo.type = self._get_super_type(list(params) + [body])

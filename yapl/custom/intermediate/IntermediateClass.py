@@ -13,6 +13,10 @@ class Quadruple():
             return f'{self.result} = {self.left}'
         elif self.type == 'If':
             return f'if {self.left} goto {self.result}'
+        elif self.type == 'PARAM':
+            return f'PARAM {self.result}'
+        elif self.type == 'Function':
+            return f'CALL {self.left}, {self.right}'
         elif self.type == 'Label':
             return f'{self.result}'
         elif self.type == 'Goto':

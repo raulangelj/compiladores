@@ -1,5 +1,5 @@
 class Main inherits IO {
-  a : String <- "ff";
+  a : Int <- 4;
 
   sum(a : Int, b : Int) : Int {
     a + b
