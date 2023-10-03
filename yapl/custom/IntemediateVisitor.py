@@ -26,7 +26,7 @@ class IntermediateVisitor(yaplVisitor):
         if type == 'Function':
             return Quadruple(None, left, right, f'{self.actual_label}', type)
         if type == 'Goto':
-            return Quadruple(op, left, right, f'L{self.actual_label}', type)
+            return Quadruple(op, left, right, f'{left}', type)
         self.actual_temp += 1
         return Quadruple(op, left, right, f't{self.actual_temp}', type)
     
@@ -273,7 +273,7 @@ class IntermediateVisitor(yaplVisitor):
         if not expression or isinstance(expression, (IntegerNode, StringNode, BooleanNode)):
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, expression.token, 'Assign'))
         else:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, 'R', 'Assign'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, self.get_active_temp(), 'Assign'))
         return nodo
     
     def visitBlock(self, ctx:yaplParser.BlockContext):
@@ -295,19 +295,26 @@ class IntermediateVisitor(yaplVisitor):
 
     
     def visitWhile(self, ctx:yaplParser.WhileContext):
-        condition = self.visit(ctx.expr(0))
-        temp_while = self.get_active_temp()
-        
         # TODO REVISAR QUE FALTA
         # * Generar codigo intermedio
         while_label = self.generate_label()
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=while_label))
+
+        condition = self.visit(ctx.expr(0))
+        temp_while = self.get_active_temp()
+
+        while_true_label = self.generate_label()        
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, temp_while, None, f'Goto {while_true_label.result}', 'If'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'END_{while_label.result}', None, f'Goto END_{while_label.result}', 'Goto'))
+
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=while_true_label.result))
         self.active_scope['level'] += 1
         expression = self.visit(ctx.expr(1))
         self.active_scope['level'] -= 1
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{while_label}'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{while_true_label.result}'))
 
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, temp_while, None, f'Goto {while_label.result}', 'If'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, temp_while, None, f'Goto {while_label.result}', 'Goto'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=while_label.result))
 
         nodo = WhileNode(condition, expression)
         nodo.line = ctx.WHILE().symbol.line
