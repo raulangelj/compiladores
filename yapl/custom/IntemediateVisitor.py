@@ -252,6 +252,10 @@ class IntermediateVisitor(yaplVisitor):
         nodo = NotNode(node)
         nodo.type = node.type
         nodo.line = ctx.NOT().symbol.line
+        # * generacion de codigo intermedio
+        if isinstance(node, DispatchNode):
+            # ? USO LA ACTIVE TEMP POR QUE SE QUE AL SER UNA FUNCION LA R SE GUARDA EN UNA TEMPORAL
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'NOT {self.get_active_temp()}', None, None, 'Assign_temp'))
         return nodo
     
     def visitNegative(self, ctx: yaplParser.NegativeContext):
@@ -318,8 +322,9 @@ class IntermediateVisitor(yaplVisitor):
         self.active_scope['level'] -= 1
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{while_true_label.result}'))
 
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, temp_while, None, f'Goto {while_label.result}', 'Goto'))
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=while_label.result))
+        # self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, temp_while, None, f'Goto {while_label.result}', 'Goto'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'{while_label.result}', None, f'Goto {while_label.result}', 'Goto'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{while_label.result}'))
 
         nodo = WhileNode(condition, expression)
         nodo.line = ctx.WHILE().symbol.line
@@ -450,7 +455,13 @@ class IntermediateVisitor(yaplVisitor):
         nodo.type = typex
         # * Generacion de codigo intermedio
         # Si body tiene statements que jale el ultimo
-        if isinstance(body, BlockNode):
+        if typex == 'Object':
+            # ! LA MEMORIA SERIA LA DE OBJECT
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, 'Object', _type='Return'))
+        elif typex.lower() == 'self_type':
+            # ! LA MEMORIA SERIA LA DE SELF_TYPE
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, 'SELF', _type='Return'))
+        elif isinstance(body, BlockNode):
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, body.statements[-1].token, _type='Return'))
         elif isinstance(body, (DispatchNode)):
             # ! FALTA AGREGAR A LA TABLA LA R AQUI!
