@@ -21,6 +21,9 @@ class IntermediateVisitor(yaplVisitor):
         if type == 'If':
             self.actual_label += 1
             return Quadruple(op, left, right, f'L{self.actual_label}', type)
+        if type == 'Assign_temp':
+            self.actual_temp += 1
+            return Quadruple(op, left, right, self.get_active_temp(), 'Assign')
         if type == 'PARAM':
             return Quadruple(None, None, None, f'{right}', type)
         if type == 'Function':
@@ -395,7 +398,8 @@ class IntermediateVisitor(yaplVisitor):
         return nodo
     
     def visitParen(self, ctx:yaplParser.ParenContext):
-        return self.visit(ctx.expr())
+        body = self.visit(ctx.expr())
+        return body
     
     def visitIsvoid(self, ctx:yaplParser.IsvoidContext):
         expr = self.visit(ctx.expr())
@@ -423,6 +427,7 @@ class IntermediateVisitor(yaplVisitor):
         for param in args:
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(methodCall, len(args), None, 'Function'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate('R', None, None, 'Assign_temp'))
         return nodo        
     
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
@@ -474,6 +479,9 @@ class IntermediateVisitor(yaplVisitor):
         typex = ctx.TYPE_IDENTIFIER().getText()
         nodo = NewNode(typex)
         nodo.line = ctx.NEW().symbol.line
+        # * generar el codigo intermedio
+        # ! GUARDAR EN LA TABLA DE SIMBOLOS A DONDE ESTA EL TIPO DE TYPEX!
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate('Object', None, None, 'Assign_temp'))
         return nodo
 
     def visitAttr(self, ctx:yaplParser.AttrContext):
