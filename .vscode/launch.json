@@ -19,12 +19,6 @@
         // "./tests/arith.cl"
         // "./tests/recur.cl"
         // "./tests/simple.cl"
-        // "./tests/shadow_variable_global_local.cl"
-        // "./tests/if_and_while.cl"
-        // "./tests/casteo_bool_a_int.cl"
-        // "./tests/firma_de_parametros.cl"
-        // "./tests/paso_de_parametros_firma_retorno.cl"
-        // "./tests/coincidencia_retorno.cl"
       ]
     }
   ]
