@@ -366,7 +366,11 @@ class IntermediateVisitor(yaplVisitor):
         # TODO REVISAR QUE FALTA 
         # generacion codigo intermedio
         for param in params:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
+            if isinstance(param, DispatchNode):
+                # ! AGREGAR A LA TABLA LA R AQUI!
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, 'R', None, 'PARAM'))
+            else:
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(method, len(params), None, 'Function'))
         return nodo
     
@@ -443,7 +447,11 @@ class IntermediateVisitor(yaplVisitor):
         # Si body tiene statements que jale el ultimo
         if isinstance(body, BlockNode):
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, body.statements[-1].token, _type='Return'))
+        elif isinstance(body, (DispatchNode)):
+            # ! FALTA AGREGAR A LA TABLA LA R AQUI!
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, 'R', _type='Return'))
         else:
+            # return_value = body.token if body.token else 
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, body.token, _type='Return'))
         return nodo
     
