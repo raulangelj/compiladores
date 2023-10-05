@@ -3,7 +3,7 @@ class Main inherits IO {
   b: Int <- 2 + a * 3;
   c: Bool <- true;
 
-  aa(): Bool {
+  aa(c : Int, d : Int): Bool {
     {
       while (a <= 0) loop {
         a <- a - 1;
@@ -18,8 +18,8 @@ class Main inherits IO {
         b <- 2;
       } else {
         b <- 3;
+        c <- aa(1, 1);
       } fi;
     }
   };
-  
 };

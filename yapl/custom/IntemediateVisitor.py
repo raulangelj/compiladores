@@ -270,7 +270,9 @@ class IntermediateVisitor(yaplVisitor):
         nodo.line = ctx.ASSIGN().symbol.line
         nodo.type = expression.type
         # * Intermediate code
-        if not expression or isinstance(expression, (IntegerNode, StringNode, BooleanNode)):
+        if isinstance(expression, MethodCallNode):
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, 'R', 'Assign'))
+        elif not expression or isinstance(expression, (IntegerNode, StringNode, BooleanNode, IdNode)):
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, expression.token, 'Assign'))
         else:
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(idx, self.get_active_temp(), 'Assign'))
@@ -325,7 +327,11 @@ class IntermediateVisitor(yaplVisitor):
         condition = self.visit(ctx.expr(0))
         self.active_scope['level'] += 1
         # * Generate intermediate code
-        if_true = self.generate(self.get_active_temp(), None, f'Goto {self.get_active_label()}', 'If')
+        if isinstance(condition, DispatchNode):
+            value = 'R'
+        else:
+            value = self.get_active_temp()
+        if_true = self.generate(value, None, f'Goto {self.get_active_label()}', 'If')
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(if_true)
         if_false = self.generate_label()
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(if_false.result, None, f'Goto {if_false.result}', 'Goto'))
@@ -357,7 +363,8 @@ class IntermediateVisitor(yaplVisitor):
         nodo.type = self.active_scope['class_name'] if method_return == 'SELF_TYPE' else method_return
         nodo.token = f'{method}({", ".join([p.token for p in params])})'
         method_params = self.types[self.active_scope['class_name']].getMethod(method).params
-        # TODO REVISAR QUE FALTA
+        # TODO REVISAR QUE FALTA 
+        # generacion codigo intermedio
         for param in params:
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(method, len(params), None, 'Function'))
@@ -409,6 +416,9 @@ class IntermediateVisitor(yaplVisitor):
         nodo = DispatchNode(parent, methodCall, args, my_var, self._find_return_type_of_method(methodCall))
         nodo.line = ctx.ID_VAR().symbol.line
         # TODO REVISAR QUE FALTA
+        for param in args:
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(methodCall, len(args), None, 'Function'))
         return nodo        
     
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
@@ -459,9 +469,21 @@ class IntermediateVisitor(yaplVisitor):
         nodo = AttrNode(idx, typex, expression)
         nodo.line = ctx.ID_VAR().symbol.line
         # * Intermediate code
-        if not expression or isinstance(expression, (IntegerNode, StringNode, BooleanNode)):
+        if isinstance(expression, (IntegerNode, StringNode, BooleanNode)):
             self.intermediate[self.active_scope['class_name']].attributes.append(self.store_attribute(idx, expression.token, 'Assign'))
+        elif not expression:
+            value = self.defaultValue(typex)
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.store_attribute(idx, value, 'Assign'))
         else:
             self.intermediate[self.active_scope['class_name']].attributes.append(self.store_attribute(idx, self.get_active_temp(), 'Assign'))
         return nodo
             
+    def defaultValue(self, type_: str):
+        if type_ == 'String':
+            return ''
+        elif type_ == 'Int':
+            return 0
+        elif type_ == 'Bool':
+            return False
+        else:
+            return 'Object'
