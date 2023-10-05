@@ -376,7 +376,7 @@ class IntermediateVisitor(yaplVisitor):
         for param in params:
             if isinstance(param, DispatchNode):
                 # ! AGREGAR A LA TABLA LA R AQUI!
-                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, 'R', None, 'PARAM'))
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, self.get_active_temp(), None, 'PARAM'))
             else:
                 self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(method, len(params), None, 'Function'))
@@ -411,6 +411,9 @@ class IntermediateVisitor(yaplVisitor):
         # value = self._check_for_use_id(expr)
         nodo = IsVoidNode(expr, 'false')
         nodo.line = ctx.ISVOID().symbol.line
+        # * Generacion de codigo intermedio
+        # ! AGREGAR A LA TABLA LA R AQUI!
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'ISVOID {expr.token}', None, None, 'Assign_temp'))
         return nodo
     
     def _find_class_with_method(self, methdo: str):
@@ -430,7 +433,10 @@ class IntermediateVisitor(yaplVisitor):
         nodo.line = ctx.ID_VAR().symbol.line
         # TODO REVISAR QUE FALTA
         for param in args:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
+            if isinstance(param, DispatchNode):
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, self.get_active_temp(), None, 'PARAM'))
+            else:
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(methodCall, len(args), None, 'Function'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate('R', None, None, 'Assign_temp'))
         return nodo        
