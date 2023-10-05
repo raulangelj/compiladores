@@ -439,6 +439,12 @@ class IntermediateVisitor(yaplVisitor):
         nodo.body = body
         nodo.line = ctx.ID_VAR().symbol.line
         nodo.type = typex
+        # * Generacion de codigo intermedio
+        # Si body tiene statements que jale el ultimo
+        if isinstance(body, BlockNode):
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, body.statements[-1].token, _type='Return'))
+        else:
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, body.token, _type='Return'))
         return nodo
     
     def visitClasss(self, ctx:yaplParser.ClasssContext):

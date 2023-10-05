@@ -8,13 +8,15 @@ class Quadruple():
         self.type = _type
 
     def __str__(self):
-        # 'Assign', 'Quadriple', 'Goto', 'If', 'Label
+        # 'Assign', 'Quadriple', 'Goto', 'If', 'Label, ' Param', 'REturn
         if self.type == 'Assign':
             return f'{self.result} = {self.left}'
         elif self.type == 'If':
             return f'if {self.left} goto {self.result}'
         elif self.type == 'PARAM':
             return f'PARAM {self.result}'
+        elif self.type == 'Return':
+            return f'RETURN {self.result}'
         elif self.type == 'Function':
             return f'CALL {self.left}, {self.right}'
         elif self.type == 'Label':
