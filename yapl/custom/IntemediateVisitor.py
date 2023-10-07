@@ -144,16 +144,18 @@ class IntermediateVisitor(yaplVisitor):
         nodo.token = f'{ctx.expr(0).getText()}+{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         # * Generate intermediate code
-        new_right = (
-            right.token
-            if isinstance(right, (IntegerNode, IdNode))
-            else self.get_active_temp()
-        )
-        new_left = (
-            left.token
-            if isinstance(left, (IntegerNode, IdNode))
-            else self.get_active_temp()
-        )
+        if isinstance(right, (IntegerNode, IdNode)):
+            new_right = right.token
+        elif isinstance(right, MethodCallNode):
+            new_right = 'R'
+        else:
+            new_right = self.get_active_temp()
+        if isinstance(left, (IntegerNode, IdNode)):
+            new_left = left.token
+        elif isinstance(left, MethodCallNode):
+            new_left = 'R'
+        else:
+            new_left = self.get_active_temp()
         if self.active_scope['method_name']:
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '+', left_node=nodo))
         else:
@@ -168,16 +170,18 @@ class IntermediateVisitor(yaplVisitor):
         nodo.token = f'{ctx.expr(0).getText()}-{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         # * Generate intermediate code
-        new_right = (
-            right.token
-            if isinstance(right, (IntegerNode, IdNode))
-            else self.get_active_temp()
-        )
-        new_left = (
-            left.token
-            if isinstance(left, (IntegerNode, IdNode))
-            else self.get_active_temp()
-        )
+        if isinstance(right, (IntegerNode, IdNode)):
+            new_right = right.token
+        elif isinstance(right, MethodCallNode):
+            new_right = 'R'
+        else:
+            new_right = self.get_active_temp()
+        if isinstance(left, (IntegerNode, IdNode)):
+            new_left = left.token
+        elif isinstance(left, MethodCallNode):
+            new_left = 'R'
+        else:
+            new_left = self.get_active_temp()
         if self.active_scope['method_name']:
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '-', left_node=nodo))
         else:
@@ -192,16 +196,18 @@ class IntermediateVisitor(yaplVisitor):
         node.token = f'{ctx.expr(0).getText()}*{ctx.expr(1).getText()}'
         node.type = 'Int'
         # * Generate intermediate code
-        new_right = (
-            right.token
-            if isinstance(right, (IntegerNode, IdNode))
-            else self.get_active_temp()
-        )
-        new_left = (
-            left.token
-            if isinstance(left, (IntegerNode, IdNode))
-            else self.get_active_temp()
-        )
+        if isinstance(right, (IntegerNode, IdNode)):
+            new_right = right.token
+        elif isinstance(right, MethodCallNode):
+            new_right = 'R'
+        else:
+            new_right = self.get_active_temp()
+        if isinstance(left, (IntegerNode, IdNode)):
+            new_left = left.token
+        elif isinstance(left, MethodCallNode):
+            new_left = 'R'
+        else:
+            new_left = self.get_active_temp()
         if self.active_scope['method_name']:
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '*', left_node=node))
         else:
@@ -216,16 +222,18 @@ class IntermediateVisitor(yaplVisitor):
         nodo.token = f'{ctx.expr(0).getText()}/{ctx.expr(1).getText()}'
         nodo.type = 'Int'
         # * Generate intermediate code
-        new_right = (
-            right.token
-            if isinstance(right, (IntegerNode, IdNode))
-            else self.get_active_temp()
-        )
-        new_left = (
-            left.token
-            if isinstance(left, (IntegerNode, IdNode))
-            else self.get_active_temp()
-        )
+        if isinstance(right, (IntegerNode, IdNode)):
+            new_right = right.token
+        elif isinstance(right, MethodCallNode):
+            new_right = 'R'
+        else:
+            new_right = self.get_active_temp()
+        if isinstance(left, (IntegerNode, IdNode)):
+            new_left = left.token
+        elif isinstance(left, MethodCallNode):
+            new_left = 'R'
+        else:
+            new_left = self.get_active_temp()
         if self.active_scope['method_name']:
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '/', left_node=nodo))
         else:
@@ -368,7 +376,7 @@ class IntermediateVisitor(yaplVisitor):
         elif isinstance(body_list[-1], DispatchNode):
             nodo.token = body_list[-1].token
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp', left_node=nodo))
-        elif body_list[-1].token != '':
+        elif body_list[-1].token != '' and body_list[-1].token is not None and body_list[-1].token != 'R' and not isinstance(body_list[-1], LetNode):
             nodo.token = body_list[-1].token
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp', left_node=nodo))
         return nodo
@@ -489,6 +497,8 @@ class IntermediateVisitor(yaplVisitor):
         expression = self.visit(ctx.expr()) if ctx.expr() is not None else None
         nodo = AttrNode(idx, typex, expression)
         nodo.line = ctx.ID_VAR().symbol.line
+        nodo.type = typex
+        nodo.token = idx
         return nodo
         
     def visitLet(self, ctx:yaplParser.LetContext):
@@ -496,11 +506,18 @@ class IntermediateVisitor(yaplVisitor):
         for i in range(len(ctx.var_typescript())):
             p = self.visit(ctx.var_typescript(i))
             params.append(p)
+            # * Generacion de codigo intermedio
+            # asignamos el valor por defecto de cada variable
+            if self.active_scope['method_name'] is None:
+                self.intermediate[self.active_scope['class_name']].attributes.append(self.store_attribute(p.idx, p.value, 'Assign'))
+            else:
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute(p.idx, p.value.token, 'Assign'))
         body = self.visit(ctx.expr())
         # self._addSimbolToTable(self.active_scope, body)
         nodo = LetNode(params, body)
         nodo.line = ctx.LET().symbol.line
         nodo.type = self._get_super_type(list(params) + [body])
+        nodo.token = " ".join([p.token for p in params])
         return nodo
     
     def visitParen(self, ctx:yaplParser.ParenContext):
@@ -612,6 +629,8 @@ class IntermediateVisitor(yaplVisitor):
         expression = self.visit(ctx.expr()) if ctx.expr() is not None else None
         nodo = AttrNode(idx, typex, expression)
         nodo.line = ctx.ID_VAR().symbol.line
+        nodo.type = typex
+        nodo.token = idx
         # * Intermediate code
         if isinstance(expression, (IntegerNode, StringNode, BooleanNode, IdNode)):
             self.intermediate[self.active_scope['class_name']].attributes.append(self.store_attribute(idx, expression.token, 'Assign'))

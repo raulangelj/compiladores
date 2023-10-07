@@ -49,8 +49,8 @@ def main():
 
     visitor = VisitorDefinition()
     visitor.visit(tree)
-    visitor.show_variables_table()
-    visitor.show_classes_table()
+    # visitor.show_variables_table()
+    # visitor.show_classes_table()
 
     semanticsVisitor = YaplVisitorCustom()
     semanticsVisitor.types = visitor.types
@@ -58,8 +58,8 @@ def main():
     program = semanticsVisitor.visit(tree)
 
     print(colored("The program is correct", 'green'))
-    semanticsVisitor.show_variables_table()
-    semanticsVisitor.show_classes_table()
+    # semanticsVisitor.show_variables_table()
+    # semanticsVisitor.show_classes_table()
 
     # visitor = YaplVisitorCustom()
     # program = visitor.visit(tree)
