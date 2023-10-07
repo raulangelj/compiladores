@@ -464,6 +464,10 @@ class IntermediateVisitor(yaplVisitor):
         nodo = DispatchNode(parent, methodCall, args, my_var, self._find_return_type_of_method(methodCall))
         nodo.line = ctx.ID_VAR().symbol.line
         # TODO REVISAR QUE FALTA
+        # * Genearion de codigo intermedio
+        if isinstance(my_var, (IntegerNode, BooleanNode, BooleanNode)):
+            # generate a temp for this
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(my_var.token, None, None, 'Assign_temp'))
         for param in args:
             if isinstance(param, DispatchNode):
                 self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, self.get_active_temp(), None, 'PARAM'))
