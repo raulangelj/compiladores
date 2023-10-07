@@ -318,7 +318,9 @@ class IntermediateVisitor(yaplVisitor):
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=while_label))
 
         condition = self.visit(ctx.expr(0))
-        if isinstance(condition, (IntegerNode, BooleanNode)):
+        if isinstance(condition, IfNode) and condition.generate_r:
+            temp_while = 'R'
+        elif isinstance(condition, (IntegerNode, BooleanNode)):
             temp_while = condition.token
         else:
             temp_while = self.get_active_temp()
@@ -343,6 +345,7 @@ class IntermediateVisitor(yaplVisitor):
         return nodo
     
     def visitIf(self, ctx:yaplParser.IfContext):
+        created_R = False
         condition = self.visit(ctx.expr(0))
         self.active_scope['level'] += 1
         # * Generate intermediate code
@@ -358,18 +361,28 @@ class IntermediateVisitor(yaplVisitor):
         if_false = self.generate_label()
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(if_false.result, None, f'Goto {if_false.result}', 'Goto'))
 
+        # * THEN BODY
         # * Generate intermediate code
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=if_true.result))
+        # if is BoolNode add a R
         then_body = self.visit(ctx.expr(1))
+        if isinstance(then_body, (IntegerNode, BooleanNode)):
+            created_R = True
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute('R', then_body.token, 'Assign'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{if_true.result}'))
         self.active_scope['level'] += 1
 
+        # * ELSE BODY
         # * Generate intermediate code
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=if_false.result))
         else_body = self.visit(ctx.expr(2))
+        if isinstance(else_body, (IntegerNode, BooleanNode)):
+            created_R = True
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute('R', else_body.token, 'Assign'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{if_false.result}'))
         self.active_scope['level'] -= 2
         nodo = IfNode(condition, then_body, else_body)
+        nodo.generate_r = created_R
         nodo.line = ctx.IF().symbol.line
         nodo.type = self._get_super_type([then_body, else_body])
         # TODO REVISAR QUE FALTA
