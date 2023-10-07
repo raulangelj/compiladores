@@ -83,7 +83,15 @@ class IntermediateVisitor(yaplVisitor):
             # offset=self.local_offset)
             self.actual_temp += 1
             [a, b] = self.get_last_offset()
-            self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], left_node.type, left, self.types[left_node.type].width, a[1].width + b)
+            classn = None
+            if left_node.type == 'Id':
+                classn = left_node.statements[-1].token
+                if classn == 'self':
+                    classn = self.active_scope['class_name']
+            else:
+                classn = left_node.token
+            
+            self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, a[1].width + b)
             return Quadruple(op, left, right, self.get_active_temp(), 'Assign')
         if type == 'PARAM':
             return Quadruple(None, None, None, f'{right}', type)
@@ -93,7 +101,14 @@ class IntermediateVisitor(yaplVisitor):
             return Quadruple(op, left, right, f'{left}', type)
         self.actual_temp += 1
         [a, b] = self.get_last_offset()
-        self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], left_node.type, self.types[left_node.type].width, a[1].width + b)
+        classn = None
+        if left_node.type == 'Id':
+            classn = left_node.statements[-1].token
+            if classn == 'self':
+                classn = self.active_scope['class_name']
+        else:
+            classn = left_node.token
+        self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, a[1].width + b)
         return Quadruple(op, left, right, f't{self.actual_temp}', type)
     
     def generate_label(self) -> Quadruple:
@@ -360,11 +375,13 @@ class IntermediateVisitor(yaplVisitor):
         # * Generacion de codigo intermedio
         # Guardo el ultimo valor en una variable temporal
         if self.active_scope['method_name'] is None:
-            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(body_list[-1].token, None, None, 'Assign_temp'))
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(body_list[-1].token, None, None, 'Assign_temp', left_node=nodo))
         elif isinstance(body_list[-1], DispatchNode):
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp'))
+            nodo.token = body_list[-1].token
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp', left_node=nodo))
         elif body_list[-1].token != '':
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp'))
+            nodo.token = body_list[-1].token
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp', left_node=nodo))
         return nodo
     
     def _get_super_type(self, features: Node = []):
@@ -508,7 +525,7 @@ class IntermediateVisitor(yaplVisitor):
         nodo.line = ctx.ISVOID().symbol.line
         # * Generacion de codigo intermedio
         # ! AGREGAR A LA TABLA LA R AQUI!
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'ISVOID {expr.token}', None, None, 'Assign_temp'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'ISVOID {expr.token}', None, None, 'Assign_temp', left_node=nodo))
         return nodo
     
     def _find_class_with_method(self, methdo: str):
@@ -530,7 +547,7 @@ class IntermediateVisitor(yaplVisitor):
         # * Genearion de codigo intermedio
         if isinstance(my_var, (IntegerNode, BooleanNode, BooleanNode)):
             # generate a temp for this
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(my_var.token, None, None, 'Assign_temp'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(my_var.token, None, None, 'Assign_temp', left_node=nodo))
         for param in args:
             if isinstance(param, DispatchNode):
                 self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, self.get_active_temp(), None, 'PARAM', left_node=nodo))
