@@ -89,7 +89,7 @@ class IntermediateVisitor(yaplVisitor):
                 if classn == 'self':
                     classn = self.active_scope['class_name']
             else:
-                classn = left_node.token
+                classn = left_node.type
             
             self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, a[1].width + b)
             return Quadruple(op, left, right, self.get_active_temp(), 'Assign')
@@ -107,7 +107,7 @@ class IntermediateVisitor(yaplVisitor):
             if classn == 'self':
                 classn = self.active_scope['class_name']
         else:
-            classn = left_node.token
+            classn = left_node.type
         self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, a[1].width + b)
         return Quadruple(op, left, right, f't{self.actual_temp}', type)
     
