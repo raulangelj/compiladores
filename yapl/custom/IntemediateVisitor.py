@@ -18,30 +18,19 @@ class IntermediateVisitor(yaplVisitor):
         }
     
     def get_last_offset(self):
-        if self.active_scope['method_name'] is not None:
-            try:
-                diccionario = self.types[self.active_scope['class_name']].locals[self.active_scope['method_name']]
+        if self.active_scope['method_name'] is None:
+            diccionario = self.types[self.active_scope['class_name']].attributes
 
-                max_value = 0
-                for j in diccionario.items():
-                    for i in j[1].items():
-                        if i[1].offset >= max_value:
-                            max_value = i[1].offset
-                    return [i, i[1].offset]
-            except:
-                return [(0, Attribute('', '')), 0]
-
+        elif self.active_scope['method_name'] not in self.types[self.active_scope['class_name']].locals:
+            return Attribute('','')
         else:
-            try:
-                diccionario = self.types[self.active_scope['class_name']].attributes
-                max_value = 0
-                for j in diccionario.items():
-                    for i in j[1].items():
-                        if i[1].offset >= max_value:
-                            max_value = i[1].offset
-                    return [i, i[1].offset]
-            except:
-                return [(0, Attribute('', '')), 0]
+            diccionario = self.types[self.active_scope['class_name']].locals[self.active_scope['method_name']]
+        last_value = Attribute('', '')
+        for j in diccionario.items():
+           for i in j[1].items():
+              if i[1].offset >= last_value.offset:
+                 last_value = i[1]
+        return last_value
                 
     def show_variables_table(self):
         headers = ['Name', 'Type', 'Scope', 'Value', 'Width', 'Offset']
@@ -82,7 +71,7 @@ class IntermediateVisitor(yaplVisitor):
         if type == 'Assign_temp':
             # offset=self.local_offset)
             self.actual_temp += 1
-            [a, b] = self.get_last_offset()
+            item = self.get_last_offset()
             classn = None
             if left_node.type == 'Id':
                 classn = left_node.statements[-1].token
@@ -91,7 +80,7 @@ class IntermediateVisitor(yaplVisitor):
             else:
                 classn = left_node.type
             
-            self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, a[1].width + b)
+            self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, item.width + item.offset)
             return Quadruple(op, left, right, self.get_active_temp(), 'Assign')
         if type == 'PARAM':
             return Quadruple(None, None, None, f'{right}', type)
@@ -100,7 +89,7 @@ class IntermediateVisitor(yaplVisitor):
         if type == 'Goto':
             return Quadruple(op, left, right, f'{left}', type)
         self.actual_temp += 1
-        [a, b] = self.get_last_offset()
+        item = self.get_last_offset()
         classn = None
         if left_node.type == 'Id':
             classn = left_node.statements[-1].token
@@ -108,7 +97,7 @@ class IntermediateVisitor(yaplVisitor):
                 classn = self.active_scope['class_name']
         else:
             classn = left_node.type
-        self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, a[1].width + b)
+        self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, item.width + item.offset)
         return Quadruple(op, left, right, f't{self.actual_temp}', type)
     
     def generate_label(self) -> Quadruple:
