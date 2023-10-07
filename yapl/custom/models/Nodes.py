@@ -171,6 +171,7 @@ class IfNode(Node):
         self.condition = condition
         self.then_body = then_body
         self.else_body = else_body
+        self.generate_r = False
 
 class WhileNode(Node):
     def __init__(self, condition, body):

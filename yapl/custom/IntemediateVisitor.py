@@ -357,6 +357,14 @@ class IntermediateVisitor(yaplVisitor):
         nodo.line = ctx.LBRACE().symbol.line
         # nodo.type = self._get_super_type(body_list)
         nodo.type = body_list[-1].type
+        # * Generacion de codigo intermedio
+        # Guardo el ultimo valor en una variable temporal
+        if self.active_scope['method_name'] is None:
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(body_list[-1].token, None, None, 'Assign_temp'))
+        elif isinstance(body_list[-1], DispatchNode):
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp'))
+        elif body_list[-1].token != '':
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp'))
         return nodo
     
     def _get_super_type(self, features: Node = []):
@@ -373,7 +381,12 @@ class IntermediateVisitor(yaplVisitor):
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=while_label))
 
         condition = self.visit(ctx.expr(0))
-        temp_while = self.get_active_temp()
+        if isinstance(condition, IfNode) and condition.generate_r:
+            temp_while = 'R'
+        elif isinstance(condition, (IntegerNode, BooleanNode)):
+            temp_while = condition.token
+        else:
+            temp_while = self.get_active_temp()
 
         while_true_label = self.generate_label()        
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, temp_while, None, f'Goto {while_true_label.result}', 'If'))
@@ -395,30 +408,44 @@ class IntermediateVisitor(yaplVisitor):
         return nodo
     
     def visitIf(self, ctx:yaplParser.IfContext):
+        created_R = False
         condition = self.visit(ctx.expr(0))
         self.active_scope['level'] += 1
         # * Generate intermediate code
-        if isinstance(condition, DispatchNode):
-            value = 'R'
+        value = 'R' if isinstance(condition, DispatchNode) else self.get_active_temp()
+        
+        if isinstance(condition, (IntegerNode, BooleanNode)):
+            if_condition = condition.token
         else:
-            value = self.get_active_temp()
-        if_true = self.generate(value, None, f'Goto {self.get_active_label()}', 'If')
+            if_condition = self.get_active_temp()
+
+        if_true = self.generate(value, None, f'Goto {if_condition}', 'If')
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(if_true)
         if_false = self.generate_label()
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(if_false.result, None, f'Goto {if_false.result}', 'Goto'))
 
+        # * THEN BODY
         # * Generate intermediate code
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=if_true.result))
+        # if is BoolNode add a R
         then_body = self.visit(ctx.expr(1))
+        if isinstance(then_body, (IntegerNode, BooleanNode)):
+            created_R = True
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute('R', then_body.token, 'Assign'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{if_true.result}'))
         self.active_scope['level'] += 1
-        
+
+        # * ELSE BODY
         # * Generate intermediate code
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=if_false.result))
         else_body = self.visit(ctx.expr(2))
+        if isinstance(else_body, (IntegerNode, BooleanNode)):
+            created_R = True
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.store_attribute('R', else_body.token, 'Assign'))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, _type='Label', result=f'END_{if_false.result}'))
         self.active_scope['level'] -= 2
         nodo = IfNode(condition, then_body, else_body)
+        nodo.generate_r = created_R
         nodo.line = ctx.IF().symbol.line
         nodo.type = self._get_super_type([then_body, else_body])
         # TODO REVISAR QUE FALTA
@@ -437,12 +464,17 @@ class IntermediateVisitor(yaplVisitor):
         # TODO REVISAR QUE FALTA 
         # generacion codigo intermedio
         for param in params:
-            if isinstance(param, DispatchNode):
                 # ! AGREGAR A LA TABLA LA R AQUI!
-                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, 'R', None, 'PARAM', left_node=nodo))
+            if self.active_scope['method_name'] is None:
+                self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
+            elif isinstance(param, DispatchNode):
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, self.get_active_temp(), None, 'PARAM', left_node=nodo))
             else:
                 self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(method, len(params), None, 'Function', left_node=nodo))
+        if self.active_scope['method_name'] is None:
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(method, len(params), None, 'Function', left_node=nodo))
+        else:
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(method, len(params), None, 'Function', left_node=nodo))
         return nodo
     
     def visitAttributesDeclaration(self, ctx:yaplParser.AttributesDeclarationContext):
@@ -474,6 +506,9 @@ class IntermediateVisitor(yaplVisitor):
         # value = self._check_for_use_id(expr)
         nodo = IsVoidNode(expr, 'false')
         nodo.line = ctx.ISVOID().symbol.line
+        # * Generacion de codigo intermedio
+        # ! AGREGAR A LA TABLA LA R AQUI!
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'ISVOID {expr.token}', None, None, 'Assign_temp'))
         return nodo
     
     def _find_class_with_method(self, methdo: str):
@@ -492,8 +527,15 @@ class IntermediateVisitor(yaplVisitor):
         nodo = DispatchNode(parent, methodCall, args, my_var, self._find_return_type_of_method(methodCall))
         nodo.line = ctx.ID_VAR().symbol.line
         # TODO REVISAR QUE FALTA
+        # * Genearion de codigo intermedio
+        if isinstance(my_var, (IntegerNode, BooleanNode, BooleanNode)):
+            # generate a temp for this
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(my_var.token, None, None, 'Assign_temp'))
         for param in args:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
+            if isinstance(param, DispatchNode):
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, self.get_active_temp(), None, 'PARAM', left_node=nodo))
+            else:
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(methodCall, len(args), None, 'Function', left_node=nodo))
         self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate('R', None, None, 'Assign_temp', left_node=nodo))
         return nodo        
@@ -565,7 +607,7 @@ class IntermediateVisitor(yaplVisitor):
         nodo = AttrNode(idx, typex, expression)
         nodo.line = ctx.ID_VAR().symbol.line
         # * Intermediate code
-        if isinstance(expression, (IntegerNode, StringNode, BooleanNode)):
+        if isinstance(expression, (IntegerNode, StringNode, BooleanNode, IdNode)):
             self.intermediate[self.active_scope['class_name']].attributes.append(self.store_attribute(idx, expression.token, 'Assign'))
         elif not expression:
             value = self.defaultValue(typex)
