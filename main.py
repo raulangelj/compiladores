@@ -83,6 +83,8 @@ def main():
     intermediateVisitor.types = semanticsVisitor.types
     intermediateVisitor.visit(tree)
     intermediateVisitor.print_intermediate()
+    intermediateVisitor.show_variables_table()
+    intermediateVisitor.show_classes_table()
 
     # display parse tree in GUI
     # TODO: add flag -gui

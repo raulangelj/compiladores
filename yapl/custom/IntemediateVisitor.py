@@ -16,13 +16,74 @@ class IntermediateVisitor(yaplVisitor):
             'method_name': None,
             'level': 0
         }
+    
+    def get_last_offset(self):
+        if self.active_scope['method_name'] is not None:
+            try:
+                diccionario = self.types[self.active_scope['class_name']].locals[self.active_scope['method_name']]
 
-    def generate(self, left: str, right: str, op: str = None, type: str = 'Quadruple') -> Quadruple:
+                max_value = 0
+                for j in diccionario.items():
+                    for i in j[1].items():
+                        if i[1].offset >= max_value:
+                            max_value = i[1].offset
+                    return [i, i[1].offset]
+            except:
+                return [(0, Attribute('', '')), 0]
+
+        else:
+            try:
+                diccionario = self.types[self.active_scope['class_name']].attributes
+                max_value = 0
+                for j in diccionario.items():
+                    for i in j[1].items():
+                        if i[1].offset >= max_value:
+                            max_value = i[1].offset
+                    return [i, i[1].offset]
+            except:
+                return [(0, Attribute('', '')), 0]
+                
+    def show_variables_table(self):
+        headers = ['Name', 'Type', 'Scope', 'Value', 'Width', 'Offset']
+        for c in self.types:
+            print(f"\n========== {c} Variables Table ==========\n")
+            table = []
+            for t in self.types[c].attributes:
+                var = self.types[c].get_attribute(t)
+                table.append([t, var.type, 'GLOBAL', var.value, var.width, var.offset])
+            # locals
+            for l in self.types[c].locals:
+                for level in self.types[c].locals[l]:
+                    for t in self.types[c].locals[l][level]:
+                        var = self.types[c].get_local(l, level, t)
+                        table.append([t, var.type, f'LOCAL: {l} - LEVEL: {level}', var.value, var.width, var.offset])
+            print(tabulate(table, headers, tablefmt="fancy_grid"))
+
+    def show_classes_table(self):
+        headers = ['Name' , 'Parent', 'Attributes', 'Methods', 'Width']
+        table = [
+            [
+                t,
+                self.types[t].inheritance,
+                self.types[t].get_attributes_names(),
+                self.types[t].get_methods_names(),
+                self.types[t].width
+            ]
+            for t in self.types
+            if self.types[t].type == 'class'
+        ]
+        print("\n========== Classes Table ==========\n")
+        print(tabulate(table, headers, tablefmt="fancy_grid"))
+
+    def generate(self, left: str, right: str, op: str = None, type: str = 'Quadruple', left_node: Node = None) -> Quadruple:
         if type == 'If':
             self.actual_label += 1
             return Quadruple(op, left, right, f'L{self.actual_label}', type)
         if type == 'Assign_temp':
+            # offset=self.local_offset)
             self.actual_temp += 1
+            [a, b] = self.get_last_offset()
+            self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], left_node.type, left, self.types[left_node.type].width, a[1].width + b)
             return Quadruple(op, left, right, self.get_active_temp(), 'Assign')
         if type == 'PARAM':
             return Quadruple(None, None, None, f'{right}', type)
@@ -31,6 +92,8 @@ class IntermediateVisitor(yaplVisitor):
         if type == 'Goto':
             return Quadruple(op, left, right, f'{left}', type)
         self.actual_temp += 1
+        [a, b] = self.get_last_offset()
+        self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], left_node.type, self.types[left_node.type].width, a[1].width + b)
         return Quadruple(op, left, right, f't{self.actual_temp}', type)
     
     def generate_label(self) -> Quadruple:
@@ -88,9 +151,9 @@ class IntermediateVisitor(yaplVisitor):
             else self.get_active_temp()
         )
         if self.active_scope['method_name']:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '+'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '+', left_node=nodo))
         else:
-            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '+'))
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '+', left_node=nodo))
         return nodo
     
     def visitMinus(self, ctx:yaplParser.MinusContext):
@@ -112,9 +175,9 @@ class IntermediateVisitor(yaplVisitor):
             else self.get_active_temp()
         )
         if self.active_scope['method_name']:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '-'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '-', left_node=nodo))
         else:
-            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '-'))
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '-', left_node=nodo))
         return nodo
     
     def visitMult(self, ctx:yaplParser.MultContext):
@@ -136,9 +199,9 @@ class IntermediateVisitor(yaplVisitor):
             else self.get_active_temp()
         )
         if self.active_scope['method_name']:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '*'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '*', left_node=node))
         else:
-            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '*'))
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '*', left_node=node))
         return node
     
     def visitDiv(self, ctx: yaplParser.DivContext):
@@ -160,9 +223,9 @@ class IntermediateVisitor(yaplVisitor):
             else self.get_active_temp()
         )
         if self.active_scope['method_name']:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '/'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '/', left_node=nodo))
         else:
-            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '/'))
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '/', left_node=nodo))
         return nodo
 
     def visitTrue(self, ctx: yaplParser.TrueContext):
@@ -194,9 +257,9 @@ class IntermediateVisitor(yaplVisitor):
             else self.get_active_temp()
         )
         if self.active_scope['method_name']:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '<'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '<', left_node=nodo))
         else:
-            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '<'))
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '<', left_node=nodo))
         return nodo
     
     def visitLess_equal(self, ctx: yaplParser.Less_equalContext):
@@ -218,9 +281,9 @@ class IntermediateVisitor(yaplVisitor):
             else self.get_active_temp()
         )
         if self.active_scope['method_name']:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '<='))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '<=', left_node=nodo))
         else:
-            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '<='))
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '<=', left_node=nodo))
         return nodo
     
     def visitEqual(self, ctx: yaplParser.EqualContext):
@@ -242,9 +305,9 @@ class IntermediateVisitor(yaplVisitor):
             else self.get_active_temp()
         )
         if self.active_scope['method_name']:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '=='))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(new_left, new_right, '==' ,left_node=nodo))
         else:
-            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '=='))
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(new_left, new_right, '==', left_node=nodo))
         return nodo
     
     def visitNot(self, ctx: yaplParser.NotContext):
@@ -255,7 +318,7 @@ class IntermediateVisitor(yaplVisitor):
         # * generacion de codigo intermedio
         if isinstance(node, DispatchNode):
             # ? USO LA ACTIVE TEMP POR QUE SE QUE AL SER UNA FUNCION LA R SE GUARDA EN UNA TEMPORAL
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'NOT {self.get_active_temp()}', None, None, 'Assign_temp'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'NOT {self.get_active_temp()}', None, None, 'Assign_temp', left_node=nodo))
         return nodo
     
     def visitNegative(self, ctx: yaplParser.NegativeContext):
@@ -376,10 +439,10 @@ class IntermediateVisitor(yaplVisitor):
         for param in params:
             if isinstance(param, DispatchNode):
                 # ! AGREGAR A LA TABLA LA R AQUI!
-                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, 'R', None, 'PARAM'))
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, 'R', None, 'PARAM', left_node=nodo))
             else:
-                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(method, len(params), None, 'Function'))
+                self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(method, len(params), None, 'Function', left_node=nodo))
         return nodo
     
     def visitAttributesDeclaration(self, ctx:yaplParser.AttributesDeclarationContext):
@@ -430,9 +493,9 @@ class IntermediateVisitor(yaplVisitor):
         nodo.line = ctx.ID_VAR().symbol.line
         # TODO REVISAR QUE FALTA
         for param in args:
-            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM'))
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(methodCall, len(args), None, 'Function'))
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate('R', None, None, 'Assign_temp'))
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(methodCall, len(args), None, 'Function', left_node=nodo))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate('R', None, None, 'Assign_temp', left_node=nodo))
         return nodo        
     
     def visitMethodDef(self, ctx:yaplParser.MethodDefContext):
@@ -492,7 +555,7 @@ class IntermediateVisitor(yaplVisitor):
         nodo.line = ctx.NEW().symbol.line
         # * generar el codigo intermedio
         # ! GUARDAR EN LA TABLA DE SIMBOLOS A DONDE ESTA EL TIPO DE TYPEX!
-        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate('Object', None, None, 'Assign_temp'))
+        self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate('Object', None, None, 'Assign_temp', left_node=nodo))
         return nodo
 
     def visitAttr(self, ctx:yaplParser.AttrContext):
