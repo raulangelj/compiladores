@@ -197,6 +197,7 @@ class MethodCallNode(Node): # expr named functionCall
         self.obj = obj
         self.method = method
         self.params = params
+        self.return_var = None
 
 class LetNode(Node):
     def __init__(self, param_list, expr):
