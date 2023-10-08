@@ -28,9 +28,12 @@ class IntermediateVisitor(yaplVisitor):
             diccionario = self.types[self.active_scope['class_name']].locals[self.active_scope['method_name']]
         last_value = Attribute('', '')
         for j in diccionario.items():
-           for i in j[1].items():
-              if i[1].offset >= last_value.offset:
-                 last_value = i[1]
+            if type(j[1]) == dict:
+                for i in j[1].items():
+                    if i[1].offset >= last_value.offset:
+                        last_value = i[1]
+            elif j[1].offset >= last_value.offset:
+                last_value = j[1]
         return last_value
                 
     def show_variables_table(self):
@@ -84,10 +87,10 @@ class IntermediateVisitor(yaplVisitor):
                         classn = var.type
                     else:
                         classn = self.types[self.active_scope['class_name']].get_attribute(left_node.token).type
-                if classn == 'self':
-                    classn = self.active_scope['class_name']
             else:
                 classn = left_node.type
+            if classn.lower() == 'self' or classn.lower() == 'self_type':
+                classn = self.active_scope['class_name']
             
             self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, item.width + item.offset)
             return Quadruple(op, left, right, self.get_active_temp(), 'Assign')
@@ -111,10 +114,10 @@ class IntermediateVisitor(yaplVisitor):
                     classn = var.type
                 else:
                     classn = self.types[self.active_scope['class_name']].get_attribute(left_node.token).type
-            if classn == 'self':
-                classn = self.active_scope['class_name']
         else:
             classn = left_node.type
+        if classn.lower() == 'self' or classn.lower() == 'self_type':
+            classn = self.active_scope['class_name']
         self.types[self.active_scope['class_name']].define_local(self.active_scope['method_name'], self.get_active_temp(), self.active_scope['level'], classn, left, self.types[classn].width, item.width + item.offset)
         return Quadruple(op, left, right, f't{self.actual_temp}', type)
     
