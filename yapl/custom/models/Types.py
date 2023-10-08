@@ -10,6 +10,8 @@ class Attribute():
         self.offset = offset
 
     def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Attribute):
+            return False
         return self.name == __value.name and self.type == __value.type
 
 
@@ -78,6 +80,13 @@ class Klass():
 
     def get_local(self, scope: str, level: str, name: str) -> Attribute:
         return self.locals[scope][level][name] if scope in self.locals and level in self.locals[scope] and name in self.locals[scope][level] else None
+    
+    def get_local_at_any_level(self, scope: str, name: str) -> Attribute:
+        if scope in self.locals:
+            for level in self.locals[scope]:
+                if name in self.locals[scope][level]:
+                    return self.locals[scope][level][name]
+        return None
     
     def _default_type(self, _type : str = None):
         if _type == 'Int':

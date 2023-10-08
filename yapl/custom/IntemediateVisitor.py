@@ -75,7 +75,15 @@ class IntermediateVisitor(yaplVisitor):
             item = self.get_last_offset()
             classn = None
             if left_node.type == 'Id':
-                classn = left_node.statements[-1].token
+                if isinstance(left_node, BlockNode):
+                    classn = left_node.statements[-1].token
+                else:
+                    # check for the type of the id in locals
+                    var = self.types[self.active_scope['class_name']].get_local_at_any_level(self.active_scope['method_name'], left_node.token)
+                    if var != None:
+                        classn = var.type
+                    else:
+                        classn = self.types[self.active_scope['class_name']].get_attribute(left_node.token).type
                 if classn == 'self':
                     classn = self.active_scope['class_name']
             else:
@@ -92,8 +100,17 @@ class IntermediateVisitor(yaplVisitor):
         self.actual_temp += 1
         item = self.get_last_offset()
         classn = None
+        
         if left_node.type == 'Id':
-            classn = left_node.statements[-1].token
+            if isinstance(left_node, BlockNode):
+                classn = left_node.statements[-1].token
+            else:
+                # check for the type of the id in locals
+                var = self.types[self.active_scope['class_name']].get_local_at_any_level(self.active_scope['method_name'], left_node.token)
+                if var != None:
+                    classn = var.type
+                else:
+                    classn = self.types[self.active_scope['class_name']].get_attribute(left_node.token).type
             if classn == 'self':
                 classn = self.active_scope['class_name']
         else:
@@ -346,6 +363,11 @@ class IntermediateVisitor(yaplVisitor):
         nodo = NegativeNode(node, f'{ctx.expr().getText()}')
         nodo.type = node.type
         nodo.line = ctx.NEGATIVE().symbol.line
+        # * Generacion de codigo intermedio
+        if self.active_scope['method_name']:
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(f'~{node.token}', None, None, 'Assign_temp', left_node=nodo))
+        else:
+            self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(f'~{node.token}', None, None, 'Assign_temp', left_node=nodo))
         return nodo
     
     def visitId(self, ctx:yaplParser.IdContext):
@@ -381,7 +403,7 @@ class IntermediateVisitor(yaplVisitor):
         # Guardo el ultimo valor en una variable temporal
         if self.active_scope['method_name'] is None:
             self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(body_list[-1].token, None, None, 'Assign_temp', left_node=nodo))
-        elif isinstance(body_list[-1], DispatchNode):
+        elif isinstance(body_list[-1], DispatchNode) and body_list[-1].token != '':
             nodo.token = body_list[-1].token
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(body_list[-1].token, None, None, 'Assign_temp', left_node=nodo))
         elif body_list[-1].token != '' and body_list[-1].token is not None and 'R' not in body_list[-1].token and not isinstance(body_list[-1], LetNode):
@@ -606,6 +628,9 @@ class IntermediateVisitor(yaplVisitor):
         elif isinstance(body, (DispatchNode)):
             # ! FALTA AGREGAR A LA TABLA LA R AQUI!
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, self.get_active_R(), _type='Return'))
+        elif body.token == '':
+            # ! FALTA AGREGAR A LA TABLA LA R AQUI!
+            self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, self.get_active_temp(), _type='Return'))
         else:
             # return_value = body.token if body.token else 
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(Quadruple(None, None, None, body.token, _type='Return'))
