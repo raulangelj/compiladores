@@ -506,7 +506,7 @@ class IntermediateVisitor(yaplVisitor):
                 # ! AGREGAR A LA TABLA LA R AQUI!
             if self.active_scope['method_name'] is None:
                 self.intermediate[self.active_scope['class_name']].attributes.append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
-            elif isinstance(param, DispatchNode):
+            elif isinstance(param, (DispatchNode, BiOperationNode)):
                 self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, self.get_active_temp(), None, 'PARAM', left_node=nodo))
             else:
                 self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
@@ -580,7 +580,7 @@ class IntermediateVisitor(yaplVisitor):
             # generate a temp for this
             self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(my_var.token, None, None, 'Assign_temp', left_node=nodo))
         for param in args:
-            if isinstance(param, DispatchNode):
+            if isinstance(param,  (DispatchNode, BiOperationNode)):
                 self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, self.get_active_temp(), None, 'PARAM', left_node=nodo))
             else:
                 self.intermediate[self.active_scope['class_name']].methods[self.active_scope['method_name']].append(self.generate(None, param.token, None, 'PARAM', left_node=nodo))
