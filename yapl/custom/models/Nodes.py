@@ -15,6 +15,7 @@ class Node():
         self.token = ''
         self.line = None
         self.width = 0
+        self.generate_r = None
 
 class BiOperationNode(Node):
     def __init__(self, left, right):
