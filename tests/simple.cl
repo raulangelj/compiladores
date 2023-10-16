@@ -1,25 +1,15 @@
 class Main inherits IO {
-  a: Int <- 0;
-  b: Int <- 2 + a * 3;
-  c: Bool <- true;
-
-  aa(c : Int, d : Int): Bool {
-    {
-      while (a <= 0) loop {
-        a <- a - 1;
-      } pool;
-    }
-  };
+  a: Int <- 1 + 5;
+  b: Int <- 2 - 1;
+  c: Int <- 3 / 1;
+  d: Int <- 4 * 1;
 
   main(): Object {
     {
-      a <- 1 * 3 + a;
-      if ( 2 < 3) then {
-        b <- 2;
-      } else {
-        b <- 3;
-        c <- aa(1, 1);
-      } fi;
+      a <- a + 5;
+      b <- 6 - 2;
+      c <- 9 / 3;
+      d <- 2 * 4;
     }
   };
 };

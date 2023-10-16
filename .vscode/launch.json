@@ -17,9 +17,9 @@
         // "./tests/hello_world.cl"
         // "./tests/cool.cl"
         // "./tests/primes.cl"
-        "./tests/recur.cl"
+        // "./tests/recur.cl"
         // "./tests/arith.cl"
-        // "./tests/simple.cl"
+        "./tests/simple.cl"
       ]
     }
   ]
