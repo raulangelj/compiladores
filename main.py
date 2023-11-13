@@ -84,8 +84,8 @@ def main():
     intermediateVisitor.types = semanticsVisitor.types
     intermediateVisitor.visit(tree)
     intermediateVisitor.print_intermediate()
-    intermediateVisitor.show_variables_table()
-    intermediateVisitor.show_classes_table()
+    # intermediateVisitor.show_variables_table()
+    # intermediateVisitor.show_classes_table()
 
     assembler = Assembler(intermediateVisitor.intermediate)
     assembler.generate_code()
@@ -93,10 +93,10 @@ def main():
 
     # display parse tree in GUI
     # TODO: add flag -gui
-    command = f'antlr4-parse grammar/yapl.g4 program -gui'
-    process = os.popen(command, 'w')
-    process.write(input_stream.strdata)
-    process.close()
+    # command = f'antlr4-parse grammar/yapl.g4 program -gui'
+    # process = os.popen(command, 'w')
+    # process.write(input_stream.strdata)
+    # process.close()
 
 def evaluate_code(code: str):
     success = 1

@@ -14,7 +14,7 @@
       "args": [
         // "./tests/list.cl"
         // "./tests/primes.cl"
-        // "./tests/hello_world.cl"
+        "./tests/hello_world.cl"
         // "./tests/cool.cl"
         // "./tests/primes.cl"
         // "./tests/recur.cl"
