@@ -97,7 +97,7 @@ const Landing = () => {
   const checkStatus = async (response) => {
     // Processed - we have a result
     setProcessing(false);
-    setOutputDetails({ status: response.data['success'], compile_output: response.data['errors'] });
+    setOutputDetails({ status: response.data['success'], compile_output: response.data['errors'], code: response.data['code'] });
     if (response.data['success'] === 1) {
       showSuccessToast(`Compiled Successfully!`);
     } else {

@@ -147,7 +147,15 @@ def evaluate_code(code: str):
         print(colored("ERROR: The program has LEXIC errors", 'red'))
         errors['lexical'] = error_listener_lexer.errors + error_listener_parser.errors
 
-    return [success, errors]
+    intermediateVisitor = IntermediateVisitor()
+    intermediateVisitor.types = semanticsVisitor.types
+    intermediateVisitor.visit(tree)
+    intermediateVisitor.print_intermediate()
+
+    assembler = Assembler(intermediateVisitor.intermediate)
+    a = assembler.generate_code()
+
+    return [success, errors, a]
 
 if __name__ == '__main__':
     main()

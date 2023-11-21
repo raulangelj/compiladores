@@ -19,5 +19,5 @@ def my_endpoint():
 
   # Process the parameter as needed
   # For this example, we'll just return it in the response
-  success, errors = evaluate_code(InputStream(dictionary_obj['code']))
-  return jsonify({"errors": errors, "success": success})
+  success, errors, a = evaluate_code(InputStream(dictionary_obj['code']))
+  return jsonify({"errors": errors, "success": success, "code": a})

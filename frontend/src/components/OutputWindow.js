@@ -20,7 +20,7 @@ const OutputWindow = ({ outputDetails }) => {
     } else if (statusId === 1) {
       return (
         <pre className="px-2 py-1 font-normal text-xs text-green-500">
-          Success
+          {outputDetails['code']}
         </pre>
       );
     } else {
